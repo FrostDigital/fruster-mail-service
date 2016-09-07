@@ -1,0 +1,23 @@
+{
+  "name": "fruster-auth-service",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node ./app.js",
+    "test": "node ./spec/support/jasmine-runner.js"
+  },
+  "dependencies": {
+    "fruster-bus": "~0.0.8",
+    "lodash": "^4.15.0",
+    "nats": "^0.6.4",
+    "npm": "^3.10.6",
+    "sendgrid": "^4.0.2",
+    "uuid": "^2.0.2",
+    "winston": "^2.2.0"
+  },
+  "devDependencies": {
+    "jasmine": "^2.4.1",
+    "jasmine-spec-reporter": "^2.7.0",
+    "nats-server-control": "0.0.1"
+  }
+}
