@@ -10,7 +10,8 @@ module.exports = {
   // Domains we are allowed to send from
   defaultFrom: process.env.DEFAULT_FROM || 'no-reply@frost.se',
 
-  // How long JWT cookie will survive
+  // Your secret sendgrid API key from here:
+  // https://app.sendgrid.com/settings/api_keys
   sendgridApiKey: process.env.SENDGRID_API_KEY ||  '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'
 
 };
