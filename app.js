@@ -1,4 +1,4 @@
-const log = require('./log');
+const log = require('fruster-log');
 const mailService = require('./mail-service');
 const conf = require('./conf');
 

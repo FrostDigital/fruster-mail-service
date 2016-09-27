@@ -1,4 +1,4 @@
-var log = require('../log'),      
+var log = require('fruster-log'),      
     bus = require('fruster-bus'),
     nsc = require('nats-server-control'),
     mailService = require('../mail-service');

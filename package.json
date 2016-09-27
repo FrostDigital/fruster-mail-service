@@ -8,16 +8,19 @@
   },
   "dependencies": {
     "fruster-bus": "~0.0.8",
+    "fruster-log": "~0.0.4",
     "lodash": "^4.15.0",
     "nats": "^0.6.4",
     "npm": "^3.10.6",
     "sendgrid": "^4.0.2",
-    "uuid": "^2.0.2",
-    "winston": "^2.2.0"
+    "uuid": "^2.0.2"    
   },
   "devDependencies": {
     "jasmine": "^2.4.1",
     "jasmine-spec-reporter": "^2.7.0",
     "nats-server-control": "0.0.1"
+  },
+  "engines": {
+    "node": "6.4.0"
   }
 }
