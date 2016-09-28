@@ -1,4 +1,4 @@
-var log = require('../log'),    
+var log = require('fruster-log'),    
     SendgridMail = require('../lib/sendgrid-mail'),
     conf = require('../conf'),
     uuid = require('uuid'),
