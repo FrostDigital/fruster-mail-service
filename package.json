@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "jasmine": "^2.5.2",
-    "jasmine-spec-reporter": "^3.0.0",
+    "jasmine-spec-reporter": "2.7.0",
     "nats-server-control": "0.0.1"
   },
   "engines": {
