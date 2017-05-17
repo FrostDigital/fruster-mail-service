@@ -20,7 +20,7 @@ Send mail to given address(es).
             "to": [ "bob@example.com", "alice@nasa.com" ],  // can be a single string if only on recipient            
             "from": "no-reply@fruster.se",
             "subject": "Hello world!",
-            "body": "This is the message that allos <b>simple</b> html"
+            "message": "This is the message that allos <b>simple</b> html"
         }
     }
 
