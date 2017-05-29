@@ -7,19 +7,18 @@
     "test": "node ./spec/support/jasmine-runner.js"
   },
   "dependencies": {
-    "fruster-bus": "~0.0.17",
+    "fruster-bus": "~0.2.4-alpha",
     "fruster-health": "0.0.6",
     "fruster-log": "~0.0.8",
     "lodash": "^4.17.4",
-    "nats": "^0.6.8",
     "npm": "^4.0.5",
     "sendgrid": "^4.7.1",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
+    "fruster-test-utils": "^0.3.12",
     "jasmine": "^2.5.2",
-    "jasmine-spec-reporter": "2.7.0",
-    "nats-server-control": "0.0.1"
+    "jasmine-spec-reporter": "2.7.0"
   },
   "engines": {
     "node": "6.4.0"

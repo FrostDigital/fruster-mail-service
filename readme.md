@@ -20,7 +20,11 @@ Send mail to given address(es).
             "to": [ "bob@example.com", "alice@nasa.com" ],  // can be a single string if only one recipient            
             "from": "no-reply@fruster.se",
             "subject": "Hello world!",
-            "body": "This is the message.\n <-- That was a line break."
+            "body": "This is the message.\n <-- That was a line break.",
+            "templateId": "2c79e8ea-3a8a-4721-99f1-4c94b89bdbcd", // optional id of sendgrid template 
+            "templateArgs": { // optional map of template args
+                "name": "Joel"
+            }
         }
     }
 
