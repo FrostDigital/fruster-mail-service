@@ -1,27 +1,15 @@
 const log = require("fruster-log");
 const bus = require("fruster-bus");
-const nsc = require("nats-server-control");
 const mailService = require("../mail-service");
+const testUtils = require("fruster-test-utils");
 
 describe("Mail service", () => {
   
   var natsServer, busPort, busAddress;    
-  
-  beforeEach(done => {
-    busPort = Math.floor(Math.random() * 6000 + 2000);
-    busAddress = "nats://localhost:" + busPort;
 
-    nsc.startServer(busPort)
-      .then(server => { natsServer = server; })
-      .then(x => mailService.start(busAddress))
-      .then(done)
-      .catch(done.fail);
-  });
-
-  afterEach(() => {     
-    if(natsServer) {
-      natsServer.kill();      
-    }
+  testUtils.startBeforeEach({
+    bus: bus,
+    service: mailService
   });
 
   // Note: Think about disabling this test
@@ -62,6 +50,5 @@ describe("Mail service", () => {
     .catch(done.fail);
     
   });
-
 
 });
