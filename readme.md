@@ -16,7 +16,7 @@ Send mail to given address(es).
     
     {
         // ...
-        "data" {
+        "data": {
             "to": [ "bob@example.com", "alice@nasa.com" ],  // can be a single string if only one recipient            
             "from": "no-reply@fruster.se",
             "subject": "Hello world!",

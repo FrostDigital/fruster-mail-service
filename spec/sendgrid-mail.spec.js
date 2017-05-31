@@ -28,6 +28,25 @@ describe("Sendgrid mail", () => {
     
   });
 
+  it("should create valid mail using template", () => {              
+
+    var mail = new SendgridMail({
+      to: "joel@frost.se",
+      from: "god@frost.se",
+      templateId: "fc69d0b7-b10e-4e05-96f5-6a5ed4d1f01c"  
+    });
+
+    expect(mail.validate()).toBe(true);
+
+    var json = mail.toJSON();
+
+    expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
+    expect(json.personalizations[0].subject).toBeFalsy();
+    expect(json.from.email).toBe("god@frost.se");
+    expect(json.content[0].value).toBeFalsy();  
+    
+  });
+
   it("should fail to validate mail", () => {              
 
     var mail = new SendgridMail({      
