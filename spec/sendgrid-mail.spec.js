@@ -43,7 +43,7 @@ describe("Sendgrid mail", () => {
     expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
     expect(json.personalizations[0].subject).toBeFalsy();
     expect(json.from.email).toBe("god@frost.se");
-    expect(json.content[0].value).toBeFalsy();  
+    expect(json.content[0].value).toBe(" ");
     
   });
 
