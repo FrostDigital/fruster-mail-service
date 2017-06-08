@@ -14,7 +14,7 @@ describe("Mail service", () => {
 
   // Note: Think about disabling this test
   it("should send mail for real", done => {              
-    var mail = {
+    let mail = {
       to: "joel@frost.se",
       from: "fruster@frost.se",
       subject: "Hello world from automated test",
@@ -31,11 +31,10 @@ describe("Mail service", () => {
   });
 
   it("should send mail and use a template", done => {              
-    var mail = {
+    let mail = {
       to: "joel@frost.se",
       from: "fruster@frost.se",
       subject: "Hello world from template test",
-      message: "This is the message body.",
       templateId: "fc27a67e-b59b-4dc1-bfaa-ee3d9804e1a5",
       templateArgs: {
         name: "Joel"
@@ -50,5 +49,6 @@ describe("Mail service", () => {
     .catch(done.fail);
     
   });
+
 
 });
