@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "fruster-bus": "^0.2.15",
-    "fruster-health": "0.0.6",
+    "fruster-health": "0.0.9",
     "fruster-log": "0.0.15",
     "lodash": "^4.17.4",
     "npm": "^4.0.5",
