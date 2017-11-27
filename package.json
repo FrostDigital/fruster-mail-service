@@ -1,26 +1,23 @@
 {
-  "name": "fruster-auth-service",
-  "version": "0.0.1",
+  "name": "fruster-mail-service",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "start": "node ./app.js",
     "test": "node ./spec/support/jasmine-runner.js"
   },
   "dependencies": {
-    "fruster-bus": "^0.2.15",
-    "fruster-health": "0.0.9",
-    "fruster-log": "0.0.15",
+    "fruster-bus": "^0.2.17",
     "lodash": "^4.17.4",
-    "npm": "^4.0.5",
-    "sendgrid": "^4.7.1",
-    "uuid": "^3.1.0"
+    "nats": "^0.7.24",
+    "npm": "^5.5.1",
+    "sendgrid": "^5.2.3",
+    "uuid": "^3.1.0",
+    "winston": "^2.4.0"
   },
   "devDependencies": {
-    "fruster-test-utils": "^0.3.12",
-    "jasmine": "^2.7.0",
-    "jasmine-spec-reporter": "2.7.0"
-  },
-  "engines": {
-    "node": "6.4.0"
+    "jasmine": "^2.8.0",
+    "jasmine-spec-reporter": "^4.2.1",
+    "nats-server-control": "0.0.1"
   }
 }

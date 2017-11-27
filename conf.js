@@ -1,8 +1,8 @@
 module.exports = {
 
   // NATS servers, set multiple if using cluster
-  // Example: `['nats://10.23.45.1:4222', 'nats://10.23.41.8:4222']`
-  bus: parseArray(process.env.BUS) || ['nats://localhost:4222'],
+  // Example: `'nats://10.23.45.1:4222', 'nats://10.23.41.8:4222'`
+  bus: process.env.BUS || 'nats://localhost:4222',
 
   // Domains we are allowed to send from
   defaultFrom: process.env.DEFAULT_FROM || 'no-reply@frost.se',
