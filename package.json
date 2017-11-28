@@ -22,5 +22,8 @@
     "jasmine": "^2.8.0",
     "jasmine-spec-reporter": "^4.2.1",
     "nats-server-control": "0.0.1"
+  },
+  "engines": {
+    "node": "7.10.0"
   }
 }
