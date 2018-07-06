@@ -1,11 +1,12 @@
+const uuid = require("uuid");
 const log = require("fruster-log");
 const bus = require("fruster-bus");
 const mailService = require("../mail-service");
 const testUtils = require("fruster-test-utils");
 
 describe("Mail service", () => {
-  
-  var natsServer, busPort, busAddress;    
+
+  var natsServer, busPort, busAddress;
 
   testUtils.startBeforeEach({
     bus: bus,
@@ -13,7 +14,7 @@ describe("Mail service", () => {
   });
 
   // Note: Think about disabling this test
-  it("should send mail for real", done => {              
+  it("should send mail for real", done => {
     let mail = {
       to: "joel@frost.se",
       from: "fruster@frost.se",
@@ -21,16 +22,19 @@ describe("Mail service", () => {
       message: "This is a message from me in the future: This is not a good idea."
     };
 
-    bus.request("mail-service.send", { data: mail })
-    .then(resp => {
-      expect(resp.status).toBe(200);
-      done();
-    })
-    .catch(done.fail);
-    
+    bus.request("mail-service.send", {
+        data: mail,
+        reqId: uuid.v4()
+      })
+      .then(resp => {
+        expect(resp.status).toBe(200);
+        done();
+      })
+      .catch(done.fail);
+
   });
 
-  it("should send mail and use a template", done => {              
+  it("should send mail and use a template", done => {
     let mail = {
       to: "joel@frost.se",
       from: "fruster@frost.se",
@@ -41,13 +45,16 @@ describe("Mail service", () => {
       }
     };
 
-    bus.request("mail-service.send", { data: mail })
-    .then(resp => {
-      expect(resp.status).toBe(200);
-      done();
-    })
-    .catch(done.fail);
-    
+    bus.request("mail-service.send", {
+        data: mail,
+        reqId: uuid.v4()
+      })
+      .then(resp => {
+        expect(resp.status).toBe(200);
+        done();
+      })
+      .catch(done.fail);
+
   });
 
 
