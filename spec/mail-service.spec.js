@@ -1,12 +1,9 @@
 const uuid = require("uuid");
-const log = require("fruster-log");
 const bus = require("fruster-bus");
 const mailService = require("../mail-service");
 const testUtils = require("fruster-test-utils");
 
 describe("Mail service", () => {
-
-  var natsServer, busPort, busAddress;
 
   testUtils.startBeforeEach({
     bus: bus,

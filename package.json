@@ -24,6 +24,6 @@
         "nats-server-control": "0.0.1"
     },
     "engines": {
-        "node": "7.10.0"
+        "node": "10.5.0"
     }
 }
