@@ -1,18 +1,17 @@
 const specConstants = require("./support/spec-constants");
-const mailService = require("../fruster-mail-service");
 const constants = require("../lib/constants");
 const testUtils = require("fruster-test-utils");
 const uuid = require("uuid");
 const bus = require("fruster-bus");
 
-describe("Mail service", () => {
+describe("SendMailHandler", () => {
 
 	testUtils.startBeforeEach(specConstants.testUtilsOptions());
 
 	/** Note: Think about disabling this test */
 	it("should send mail for real", async () => {
 		const mail = {
-			to: "joel@frost.se",
+			to: "joel@frost.se2",
 			from: "fruster@frost.se",
 			subject: "Hello world from automated test 2.0",
 			message: "This is a message from me in the future: This is not a good idea. 😂😂😂😂😂😂"
