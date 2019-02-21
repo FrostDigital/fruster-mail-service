@@ -31,7 +31,10 @@ module.exports = {
 	 * @param {Object} sendGridApiClient
 	 */
 	start: async (busAddress, mongoUrl, sendGridApiClient = require("sendgrid")(config.sendgridApiKey)) => {
-		const db = await mongo.connect(mongoUrl);
+		let db;
+
+		if (config.groupedMailsEnabled)
+			db = await mongo.connect(mongoUrl);
 
 		await bus.connect(busAddress);
 
@@ -48,14 +51,20 @@ module.exports = {
  * @param {Db} db
  */
 function registerHandlers(db, sendGridApiClient) {
-	const groupedMailBatchRepo = new GroupedMailBatchRepo(db);
-	const groupedMailRepo = new GroupedMailRepo(db);
-
 	const mailManager = new MailManager(sendGridApiClient);
 
+	let sendGroupedMailHandler;
+	let processGroupedMailTimeoutsHandler;
+
+	if (config.groupedMailsEnabled) {
+		const groupedMailBatchRepo = new GroupedMailBatchRepo(db);
+		const groupedMailRepo = new GroupedMailRepo(db);
+
+		sendGroupedMailHandler = new SendGroupedMailHandler(groupedMailBatchRepo, groupedMailRepo, mailManager);
+		processGroupedMailTimeoutsHandler = new ProcessGroupedMailTimeoutsHandler(groupedMailRepo, groupedMailBatchRepo, mailManager);
+	}
+
 	const sendMailHandler = new SendMailHandler(mailManager);
-	const sendGroupedMailHandler = new SendGroupedMailHandler(groupedMailBatchRepo, groupedMailRepo, mailManager);
-	const processGroupedMailTimeoutsHandler = new ProcessGroupedMailTimeoutsHandler(groupedMailRepo, groupedMailBatchRepo, mailManager);
 
 	bus.subscribe({ /** DEPRECATED */
 		subject: constants.endpoints.service.SEND,

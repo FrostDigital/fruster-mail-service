@@ -23,8 +23,7 @@
 		"@types/mongodb": "2.2.19",
 		"fruster-test-utils": "^0.4.0",
 		"jasmine": "^3.3.1",
-		"jasmine-spec-reporter": "^4.2.1",
-		"nats-server-control": "0.0.1"
+		"jasmine-spec-reporter": "^4.2.1"
 	},
 	"engines": {
 		"node": "10.5.0"
