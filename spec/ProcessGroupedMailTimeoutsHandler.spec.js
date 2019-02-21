@@ -129,8 +129,8 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 
 	it("should remove mail batch database entry if batch is timed out and batch level is 0", async (done) => {
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");
+			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.content[0].value).toContain("1", "1st mail should have grouped 1 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 1, () => done.fail("Should not send 2 mails"));

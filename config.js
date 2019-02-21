@@ -7,6 +7,9 @@ module.exports = {
 	// Example: `"nats://10.23.45.1:4222", "nats://10.23.41.8:4222"`
 	bus: process.env.BUS || "nats://localhost:4222",
 
+	/** Mongo database URL */
+	mongoUrl: process.env.MONGO_URL || "mongodb://localhost:27017/push-service",
+
 	// Domains we are allowed to send from
 	defaultFrom: process.env.DEFAULT_FROM || "no-reply@frost.se",
 

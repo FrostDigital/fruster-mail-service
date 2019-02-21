@@ -24,7 +24,6 @@ describe("SendGroupedMailHandler", () => {
 		key: "user-service.HELLO_THERE"
 	}
 
-
 	testUtils.startBeforeEach({
 		...specConstants.testUtilsOptions(),
 		service: async (connection) => {
@@ -85,25 +84,66 @@ describe("SendGroupedMailHandler", () => {
 		done();
 	});
 
-	it("should only group mails with the same key", async (done) => {
+	it("should be possible to send grouped mails w/ templates", async (done) => {
+		const templateId = "e25df1b2-6a22-438c-b18f-83e3f065f21d";
+		const templateMail = { ...mailData, templateId };
+
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");
+			expect(data.template_id).toBe(templateId, "1st mail have template id");
+			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.personalizations[0].substitutions["-n-"]).toBe("1", "1st mail should have added n to templateArgs for `-n-`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 1, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");
+			expect(data.template_id).toBe(templateId, "2nd mail have template id");
+			expect(data.personalizations[0].subject).toContain("5", "2nd mail should have grouped 5 mail");
+			expect(data.personalizations[0].substitutions["-n-"]).toBe("5", "2nd mail should have added n to templateArgs for `-n-`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 2, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");
+			expect(data.template_id).toBe(templateId, "3rd mail have template id");
+			expect(data.personalizations[0].subject).toContain("10", "3rd mail should have grouped 10 mail");
+			expect(data.personalizations[0].substitutions["-n-"]).toBe("10", "3rd mail should have added n to templateArgs for `-n-`");
+		});
+
+		mockSendGrid.mockInterceptor(email, 3, () => done.fail("should not send 5 mails"));
+
+		for (let i = 0; i < 6; i++)
+			await bus.request({
+				subject: constants.endpoints.service.SEND_GROUPED_MAIL,
+				message: { reqId, data: templateMail }
+			});
+
+		for (let i = 0; i < 15; i++)
+			await bus.request({
+				subject: constants.endpoints.service.SEND_GROUPED_MAIL,
+				message: { reqId, data: templateMail }
+			});
+
+		expect(mockSendGrid.invocations[email]).toBe(3, "should have sent 3 grouped mails");
+
+		done();
+	});
+
+	it("should only group mails with the same key", async (done) => {
+		mockSendGrid.mockInterceptor(email, 0, (data) => {
+			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.content[0].value).toContain("1", "1st mail should have grouped 1 mail");
+		});
+
+		mockSendGrid.mockInterceptor(email, 1, (data) => {
+			expect(data.personalizations[0].subject).toContain("1", "2nd mail should have grouped 1 mail");
+			expect(data.content[0].value).toContain("1", "2nd mail should have grouped 1 mail");
+		});
+
+		mockSendGrid.mockInterceptor(email, 2, (data) => {
+			expect(data.personalizations[0].subject).toContain("1", "3rd mail should have grouped 1 mail");
+			expect(data.content[0].value).toContain("1", "3rd mail should have grouped 1 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 3, (data) => {
-			expect(data.personalizations[0].subject).toContain("5", "should have grouped 5 mail");
-			expect(data.content[0].value).toContain("5", "should have grouped 5 mail");
+			expect(data.personalizations[0].subject).toContain("5", "4th mail should have grouped 5 mail");
+			expect(data.content[0].value).toContain("5", "4th mail should have grouped 5 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 4, () => done.fail("should not send 5 mails"));
@@ -126,13 +166,13 @@ describe("SendGroupedMailHandler", () => {
 			message: { reqId, data: { ...mailData, key: "NEW_KEY_2" } }
 		});
 
-		/** Should groupd notification for second notification with key `NEW_KEY` */
+		/** Should grouped mail for second mail with key `NEW_KEY` */
 		await bus.request({
 			subject: constants.endpoints.service.SEND_GROUPED_MAIL,
 			message: { reqId, data: { ...mailData, key: "NEW_KEY" } }
 		});
 
-		/** Should groupd mails for 2-6 notification with key `{mailData.key}` and push once 5 is reached */
+		/** Should grouped mails for 2-6 mail with key `{mailData.key}` and push once 5 is reached */
 		for (let i = 0; i < 4; i++)
 			await bus.request({
 				subject: constants.endpoints.service.SEND_GROUPED_MAIL,
@@ -146,23 +186,23 @@ describe("SendGroupedMailHandler", () => {
 
 	it("should only group mails with the same key and userId", async (done) => {
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");
+			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.content[0].value).toContain("1", "1st mail should have grouped 1 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 1, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");
+			expect(data.personalizations[0].subject).toContain("1", "2nd mail should have grouped 1 mail");
+			expect(data.content[0].value).toContain("1", "2nd mail should have grouped 1 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 2, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");
+			expect(data.personalizations[0].subject).toContain("1", "3rd mail should have grouped 1 mail");
+			expect(data.content[0].value).toContain("1", "3rd mail should have grouped 1 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 3, (data) => {
-			expect(data.personalizations[0].subject).toContain("5", "should have grouped 5 mail");
-			expect(data.content[0].value).toContain("5", "should have grouped 5 mail");
+			expect(data.personalizations[0].subject).toContain("5", "4th mail should have grouped 5 mail");
+			expect(data.content[0].value).toContain("5", "4th mail should have grouped 5 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 4, () => done.fail("should not send 5 mails"));
@@ -185,7 +225,7 @@ describe("SendGroupedMailHandler", () => {
 			message: { reqId, data: { ...mailData, key: "NEW_KEY_2" } }
 		});
 
-		/** Should groupd notification for second notification with key `NEW_KEY` */
+		/** Should grouped mail for second mail with key `NEW_KEY` */
 		await bus.request({
 			subject: constants.endpoints.service.SEND_GROUPED_MAIL,
 			message: { reqId, data: { ...mailData, key: "NEW_KEY" } }

@@ -74,13 +74,13 @@ function registerHandlers(db, sendGridApiClient) {
 		bus.subscribe({
 			subject: constants.endpoints.service.SEND_GROUPED_MAIL,
 			requestSchema: SendGroupedMailRequest,
-			docs: docs.service.SEND_GROUPED_MAIL, // TODO:
+			docs: docs.service.SEND_GROUPED_MAIL,
 			handle: req => sendGroupedMailHandler.handle(req)
 		});
 
 		bus.subscribe({
 			subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-			docs: docs.service.PROCESS_GROUPED_MAIL_TIMEOUTS, // TODO:
+			docs: docs.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
 			handle: () => processGroupedMailTimeoutsHandler.handle()
 		});
 	}
@@ -108,9 +108,9 @@ function registerScheduledJobs() {
 			message: {
 				reqId: uuid.v4(),
 				data: {
-					id: constants.endpoints.service.PROCESS_GROUPED_NOTIFICATION_TIMEOUTS, // TODO:
-					subject: constants.endpoints.service.PROCESS_GROUPED_NOTIFICATION_TIMEOUTS, // TODO:
-					cron: config.groupedNotificationsTimeoutProcessingCron, // TODO:
+					id: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
+					subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
+					cron: config.groupedMailsTimeoutProcessingCron,
 					description: "Processes time outs for grouped mails"
 				}
 			}
