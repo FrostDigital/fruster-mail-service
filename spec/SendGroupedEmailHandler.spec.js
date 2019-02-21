@@ -14,12 +14,25 @@ describe("SendGroupedMailHandler", () => {
 	/**@type {Object} */
 	let configBackup;
 
+	const reqId = "reqId";
+	const email = "someone@some-email.se";
+	const mailData = {
+		to: email,
+		from: "fruster@frost.se",
+		subject: "You have {{n}} new matches!",
+		message: "You have {{n}} new matches! Visit http://ip-admin-web.c4.fruster.se/new-matches/{{n}}",
+		key: "user-service.HELLO_THERE"
+	}
+
+
 	testUtils.startBeforeEach({
 		...specConstants.testUtilsOptions(),
 		service: async (connection) => {
 			config.groupedMailsEnabled = true;
 
 			mockSendGrid = new MockSendGrid();
+
+			mockSendGrid.mockSuccess(email);
 
 			return service.start(connection.natsUrl, specConstants.testUtilsOptions().mongoUrl, mockSendGrid);
 		}
@@ -36,16 +49,6 @@ describe("SendGroupedMailHandler", () => {
 			{ numberOfMessages: 10, timeout: 100 }
 		];
 	});
-
-	const reqId = "reqId";
-	const email = "someone@some-email.se";
-	const mailData = {
-		to: email,
-		from: "fruster@frost.se",
-		subject: "You have {{n}} new matches!",
-		message: "You have {{n}} new matches! Visit http://ip-admin-web.c4.fruster.se/new-matches/{{n}}",
-		key: "user-service.HELLO_THERE"
-	}
 
 	it("should send grouped mails", async (done) => {
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
@@ -83,8 +86,6 @@ describe("SendGroupedMailHandler", () => {
 	});
 
 	it("should only group mails with the same key", async (done) => {
-		mockSendGrid.mockSuccess(email);
-
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
 			expect(data.personalizations[0].subject).toContain("1", "should have grouped 1 mail");
 			expect(data.content[0].value).toContain("1", "should have grouped 1 mail");

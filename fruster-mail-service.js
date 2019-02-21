@@ -14,6 +14,7 @@ const MailManager = require("./lib/managers/MailManager");
 
 const SendMailHandler = require("./lib/handlers/SendMailHandler");
 const SendGroupedMailHandler = require("./lib/handlers/SendGroupedMailHandler");
+const ProcessGroupedMailTimeoutsHandler = require("./lib/handlers/ProcessGroupedMailTimeoutsHandler");
 
 const SendMailRequest = require("./lib/schemas/SendMailRequest");
 const SendGroupedMailRequest = require("./lib/schemas/SendGroupedMailRequest");
@@ -54,6 +55,7 @@ function registerHandlers(db, sendGridApiClient) {
 
 	const sendMailHandler = new SendMailHandler(mailManager);
 	const sendGroupedMailHandler = new SendGroupedMailHandler(groupedMailBatchRepo, groupedMailRepo, mailManager);
+	const processGroupedMailTimeoutsHandler = new ProcessGroupedMailTimeoutsHandler(groupedMailRepo, groupedMailBatchRepo, mailManager);
 
 	bus.subscribe({ /** DEPRECATED */
 		subject: constants.endpoints.service.SEND,
@@ -74,6 +76,12 @@ function registerHandlers(db, sendGridApiClient) {
 			requestSchema: SendGroupedMailRequest,
 			docs: docs.service.SEND_GROUPED_MAIL, // TODO:
 			handle: req => sendGroupedMailHandler.handle(req)
+		});
+
+		bus.subscribe({
+			subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
+			docs: docs.service.PROCESS_GROUPED_MAIL_TIMEOUTS, // TODO:
+			handle: () => processGroupedMailTimeoutsHandler.handle()
 		});
 	}
 }
