@@ -7,31 +7,36 @@ const log = require("fruster-log");
 const uuid = require("uuid");
 const Db = mongo.Db;
 
-const GroupedEmailBatchRepo = require("./lib/repos/GroupedEmailBatchRepo");
-const GroupedEmailRepo = require("./lib/repos/GroupedEmailRepo");
+const GroupedMailBatchRepo = require("./lib/repos/GroupedMailBatchRepo");
+const GroupedMailRepo = require("./lib/repos/GroupedMailRepo");
 
 const MailManager = require("./lib/managers/MailManager");
 
 const SendMailHandler = require("./lib/handlers/SendMailHandler");
-const SendGroupedEmailHandler = require("./lib/handlers/SendGroupedEmailHandler");
+const SendGroupedMailHandler = require("./lib/handlers/SendGroupedMailHandler");
 
 const SendMailRequest = require("./lib/schemas/SendMailRequest");
 const SendGroupedMailRequest = require("./lib/schemas/SendGroupedMailRequest");
 
+/**
+ * Usage of mail & email within this service:
+ * 	email => email address
+ *  mail => an actual email being sent to a user
+ */
 module.exports = {
 	/**
 	 * @param {String} busAddress
 	 * @param {String} mongoUrl
 	 * @param {Object} sendGridApiClient
 	 */
-	start: async (busAddress, mongoUrl, sendGridApiClient) => {
+	start: async (busAddress, mongoUrl, sendGridApiClient = require("sendgrid")(config.sendgridApiKey)) => {
 		const db = await mongo.connect(mongoUrl);
 
 		await bus.connect(busAddress);
 
 		registerHandlers(db, sendGridApiClient);
 
-		if (config.groupedEmailsEnabled)
+		if (config.groupedMailsEnabled)
 			registerIndexes(db);
 
 		registerScheduledJobs();
@@ -42,13 +47,13 @@ module.exports = {
  * @param {Db} db
  */
 function registerHandlers(db, sendGridApiClient) {
-	const groupedEmailBatchRepo = new GroupedEmailBatchRepo(db);
-	const groupedEmailRepo = new GroupedEmailRepo(db);
+	const groupedMailBatchRepo = new GroupedMailBatchRepo(db);
+	const groupedMailRepo = new GroupedMailRepo(db);
 
 	const mailManager = new MailManager(sendGridApiClient);
 
 	const sendMailHandler = new SendMailHandler(mailManager);
-	const sendGroupedEmailHandler = new SendGroupedEmailHandler(groupedEmailBatchRepo, groupedEmailRepo, mailManager);
+	const sendGroupedMailHandler = new SendGroupedMailHandler(groupedMailBatchRepo, groupedMailRepo, mailManager);
 
 	bus.subscribe({ /** DEPRECATED */
 		subject: constants.endpoints.service.SEND,
@@ -63,32 +68,32 @@ function registerHandlers(db, sendGridApiClient) {
 		handle: req => sendMailHandler.handle(req)
 	});
 
-	if (config.groupedEmailsEnabled) {
+	if (config.groupedMailsEnabled) {
 		bus.subscribe({
 			subject: constants.endpoints.service.SEND_GROUPED_MAIL,
 			requestSchema: SendGroupedMailRequest,
 			docs: docs.service.SEND_GROUPED_MAIL, // TODO:
-			handle: req => sendGroupedEmailHandler.handle(req)
+			handle: req => sendGroupedMailHandler.handle(req)
 		});
 	}
 }
 
 async function registerIndexes(db) {
 	try {
-		const groupedEmailsCollection = await db.collection(constants.collections.GROUPED_EMAILS);
+		const groupedMailsCollection = await db.collection(constants.collections.GROUPED_MAILS);
 
-		const groupedEmailBatchesCollection = await db.collection(constants.collections.GROUPED_EMAIL_BATCHES);
+		const groupedMailBatchesCollection = await db.collection(constants.collections.GROUPED_MAIL_BATCHES);
 
-		await groupedEmailsCollection.createIndex({ email: 1, key: 1 });
+		await groupedMailsCollection.createIndex({ email: 1, key: 1 });
 
-		await groupedEmailBatchesCollection.createIndex({ email: 1, key: 1 }, { unique: true });
+		await groupedMailBatchesCollection.createIndex({ email: 1, key: 1 }, { unique: true });
 	} catch (err) {
 		log.info("Mongodb:", err.message);
 	}
 }
 
 function registerScheduledJobs() {
-	if (config.groupedEmailsEnabled)
+	if (config.groupedMailsEnabled)
 		bus.request({
 			subject: "schedule-service.create-job",
 			skipOptionsRequest: true,
@@ -98,7 +103,7 @@ function registerScheduledJobs() {
 					id: constants.endpoints.service.PROCESS_GROUPED_NOTIFICATION_TIMEOUTS, // TODO:
 					subject: constants.endpoints.service.PROCESS_GROUPED_NOTIFICATION_TIMEOUTS, // TODO:
 					cron: config.groupedNotificationsTimeoutProcessingCron, // TODO:
-					description: "Processes time outs for grouped emails"
+					description: "Processes time outs for grouped mails"
 				}
 			}
 		});

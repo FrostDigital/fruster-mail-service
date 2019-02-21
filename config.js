@@ -17,20 +17,19 @@ module.exports = {
 	/** Characters around variables placed within templates. For instanace -firstName- */
 	substitutionCharacter: parseArray(process.env.SUBSTITUTION_CHARACTER) || ["-", "-"],
 
-
-	/** Whether or not to enable grouped emails */
-	groupedEmailsEnabled: process.env.ENABLE_GROUPED_EMAILS === "true",
+	/** Whether or not to enable grouped mails */
+	groupedMailsEnabled: process.env.ENABLE_GROUPED_MAILS === "true",
 
 	/**
-	 * Settings for batches for grouped emails
+	 * Settings for batches for grouped mails
 	 * uses the format: `{numberOfMessages},{timeout};{numberOfMessages},{timeout};`
 	 * numberOfMessages is the number of messages to be sent before next batch level is reached.
-	 * timeout is the timeout for when emails are sent out even though the numberOfMessages has not been reached. Can be ms() or ms number
+	 * timeout is the timeout for when mails are sent out even though the numberOfMessages has not been reached. Can be ms() or ms number
 	*/
-	groupedEmailBatches: parseBatchString(process.env.GROUPED_EMAIL_BATCHES || "1,0m;5,2m;30,5m"),
+	groupedMailBatches: parseBatchString(process.env.GROUPED_MAIL_BATCHES || "1,0m;5,2m;30,5m"),
 
-	/** Cron for processing timed out grouped emails, defaults to once every minute */
-	groupedEmailsTimeoutProcessingCron: process.env.GROUPED_EMAILS_TIMEOUT_PROCESSING_CRON || "* * * * *"
+	/** Cron for processing timed out grouped mails, defaults to once every minute */
+	groupedMailsTimeoutProcessingCron: process.env.GROUPED_MAILS_TIMEOUT_PROCESSING_CRON || "* * * * *"
 
 };
 
@@ -45,13 +44,13 @@ function parseArray(str) {
 }
 
 /**
- * @typedef {Object} GroupedEmailsBatchSetting
+ * @typedef {Object} GroupedMailsBatchSetting
  * @property {Number} numberOfMessages
  * @property {Number} timeout
  */
 
 /**
- * @return {Array<GroupedEmailsBatchSetting>}
+ * @return {Array<GroupedMailsBatchSetting>}
  */
 function parseBatchString(string) {
 	try {
@@ -69,6 +68,6 @@ function parseBatchString(string) {
 
 		return output;
 	} catch (err) {
-		log.error("Error parsing GROUPED_EMAIL_BATCHES", err.stack);
+		log.error("Error parsing GROUPED_MAIL_BATCHES", err.stack);
 	}
 }

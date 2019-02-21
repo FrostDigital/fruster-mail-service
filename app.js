@@ -2,7 +2,6 @@ const config = require("./config");
 const service = require('./fruster-mail-service');
 const log = require("fruster-log");
 const constants = require('./lib/constants');
-const sendGridApiClient = require("sendgrid")(config.sendgridApiKey);
 
 require("fruster-health").start();
 
@@ -16,7 +15,7 @@ require("fruster-health").start();
 (async function () {
 
 	try {
-		await service.start(config.bus, config.mongoUrl, sendGridApiClient);
+		await service.start(config.bus, config.mongoUrl);
 		log.info(`Successfully started ${constants.SERVICE_NAME}`);
 	} catch (err) {
 		log.error(`Failed starting ${constants.SERVICE_NAME}`, err);
