@@ -100,7 +100,7 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 				message: { reqId, data: mailData }
 			});
 
-		SpecUtils.delay(110);
+		await SpecUtils.delay(110);
 
 		/** Should push 5 mails since the last batch's timeout has been reached */
 		await bus.request({
@@ -141,7 +141,7 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 			message: { reqId, data: mailData }
 		});
 
-		SpecUtils.delay(500);
+		await SpecUtils.delay(500);
 
 		await bus.request({
 			subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
