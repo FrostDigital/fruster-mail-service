@@ -1,11 +1,12 @@
-const constants = require("./lib/constants");
+const sgMail = require('@sendgrid/mail');
+const uuid = require("uuid");
 const mongo = require("mongodb");
-const config = require("./config");
-const docs = require("./lib/docs");
+const Db = mongo.Db;
 const bus = require("fruster-bus");
 const log = require("fruster-log");
-const uuid = require("uuid");
-const Db = mongo.Db;
+const config = require("./config");
+const docs = require("./lib/docs");
+const constants = require("./lib/constants");
 
 const GroupedMailBatchRepo = require("./lib/repos/GroupedMailBatchRepo");
 const GroupedMailRepo = require("./lib/repos/GroupedMailRepo");
@@ -21,8 +22,8 @@ const SendGroupedMailRequest = require("./lib/schemas/SendGroupedMailRequest");
 
 /**
  * Usage of mail & email within this service:
- * 	email => email address
- *  mail => an actual email being sent to a user
+ * email => email address
+ * mail => an actual email being sent to a user
  */
 module.exports = {
 	/**
@@ -30,20 +31,21 @@ module.exports = {
 	 * @param {String} mongoUrl
 	 * @param {Object} sendGridApiClient
 	 */
-	start: async (busAddress, mongoUrl, sendGridApiClient = require("sendgrid")(config.sendgridApiKey)) => {
-		let db;
-
-		if (config.groupedMailsEnabled)
-			db = await mongo.connect(mongoUrl);
-
+	start: async (busAddress, mongoUrl, sendGridApiClient = sgMail) => {
 		await bus.connect(busAddress);
 
+		let db;
+
+		if (config.groupedMailsEnabled) {
+			db = await mongo.connect(mongoUrl);
+			await registerIndexes(db);
+			registerScheduledJobs();
+		}
+
+		sendGridApiClient.setApiKey(config.sendgridApiKey);
+		sendGridApiClient.setSubstitutionWrappers(config.substitutionCharacter[0], config.substitutionCharacter[1]);
+
 		registerHandlers(db, sendGridApiClient);
-
-		if (config.groupedMailsEnabled)
-			registerIndexes(db);
-
-		registerScheduledJobs();
 	}
 };
 
@@ -110,18 +112,17 @@ async function registerIndexes(db) {
 }
 
 function registerScheduledJobs() {
-	if (config.groupedMailsEnabled)
-		bus.request({
-			subject: "schedule-service.create-job",
-			skipOptionsRequest: true,
-			message: {
-				reqId: uuid.v4(),
-				data: {
-					id: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-					subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-					cron: config.groupedMailsTimeoutProcessingCron,
-					description: "Processes time outs for grouped mails"
-				}
+	bus.request({
+		subject: "schedule-service.create-job",
+		skipOptionsRequest: true,
+		message: {
+			reqId: uuid.v4(),
+			data: {
+				id: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
+				subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
+				cron: config.groupedMailsTimeoutProcessingCron,
+				description: "Processes time outs for grouped mails"
 			}
-		});
+		}
+	});
 }

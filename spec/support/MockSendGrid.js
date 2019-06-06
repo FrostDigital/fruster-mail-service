@@ -6,7 +6,7 @@ class MockSendGrid {
 		this.invocations = {};
 	}
 
-	async API({ body }) {
+	async send(body) {
 		const { personalizations: { [0]: { to: { [0]: { email: to } } } } } = body;
 		const resp = this.mockResponses[to];
 		const currentInvocation = this.invocations[to] || 0;
@@ -29,6 +29,10 @@ class MockSendGrid {
 		else
 			return Promise.reject(resp.error);
 	}
+
+	setApiKey(key) { }
+
+	setSubstitutionWrappers(param1, param2) { }
 
 	/**
 	 * @param {String} email
