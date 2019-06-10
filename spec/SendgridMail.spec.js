@@ -72,7 +72,7 @@ describe("SendgridMail", () => {
 		expect(json.content[0].type).toBe("text/plain");
 	});
 
-	it("should create mail using template", () => {
+	it("should create mail using legacy template", () => {
 		const mail = new SendgridMail({
 			to: ["joel@frost.se", "bob@frost.se"],
 			from: "god@frost.se",
@@ -95,27 +95,24 @@ describe("SendgridMail", () => {
 		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
 		expect(json.personalizations[0].to[1].email).toBe("bob@frost.se");
 		expect(json.personalizations[0].subject).toBe("Amen");
-		expect(json.personalizations[0].substitutions["-foo-"]).toBe("bar");
-		expect(json.personalizations[0].substitutions["-ram.bon.ravioli.inside-"]).toBe("Object");
+		expect(json.personalizations[0].substitutions).toEqual(mail.templateArgs, "substitutions");
 		expect(json.from.email).toBe("god@frost.se");
 		expect(json.content[0].value).toBe("God Bless You");
 		expect(json.content[0].type).toBe("text/plain");
 	});
 
-	it("should be possible to change substitutionCharacter w/ config", () => {
-		config.substitutionCharacter = ["{{", "}}"];
-
+	it("should create mail using transactional template", () => {
 		const mail = new SendgridMail({
 			to: ["joel@frost.se", "bob@frost.se"],
 			from: "god@frost.se",
 			subject: "Amen",
 			message: "God Bless You",
-			templateId: "f6c88e2d-c23a-45e9-ab56-744dbdf37f27",
+			templateId: "d-6c88e2d-c23a-45e9-ab56-744dbdf37f2",
 			templateArgs: {
 				foo: "bar",
 				ram: {
 					jam: 1337,
-					bon: { ravioli: { inside: 1337 } }
+					bon: { ravioli: { inside: "Object" } }
 				}
 			}
 		});
@@ -127,13 +124,10 @@ describe("SendgridMail", () => {
 		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
 		expect(json.personalizations[0].to[1].email).toBe("bob@frost.se");
 		expect(json.personalizations[0].subject).toBe("Amen");
-		expect(json.personalizations[0].substitutions["{{foo}}"]).toBe("bar");
-		expect(json.personalizations[0].substitutions["{{ram.bon.ravioli.inside}}"]).toBe("1337");
+		expect(json.personalizations[0].dynamic_template_data).toEqual(mail.templateArgs, "dynamic_template_data");
 		expect(json.from.email).toBe("god@frost.se");
 		expect(json.content[0].value).toBe("God Bless You");
 		expect(json.content[0].type).toBe("text/plain");
-
-		config.substitutionCharacter = ["-", "-"];
 	});
 
 });

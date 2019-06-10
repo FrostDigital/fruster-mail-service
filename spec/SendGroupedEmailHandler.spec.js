@@ -91,19 +91,19 @@ describe("SendGroupedMailHandler", () => {
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
 			expect(data.template_id).toBe(templateId, "1st mail have template id");
 			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
-			expect(data.personalizations[0].substitutions["-n-"]).toBe("1", "1st mail should have added n to templateArgs for `-n-`");
+			expect(data.personalizations[0].substitutions["n"]).toBe(1, "1st mail should have added n to templateArgs for `n`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 1, (data) => {
 			expect(data.template_id).toBe(templateId, "2nd mail have template id");
 			expect(data.personalizations[0].subject).toContain("5", "2nd mail should have grouped 5 mail");
-			expect(data.personalizations[0].substitutions["-n-"]).toBe("5", "2nd mail should have added n to templateArgs for `-n-`");
+			expect(data.personalizations[0].substitutions["n"]).toBe(5, "2nd mail should have added n to templateArgs for `n`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 2, (data) => {
 			expect(data.template_id).toBe(templateId, "3rd mail have template id");
 			expect(data.personalizations[0].subject).toContain("10", "3rd mail should have grouped 10 mail");
-			expect(data.personalizations[0].substitutions["-n-"]).toBe("10", "3rd mail should have added n to templateArgs for `-n-`");
+			expect(data.personalizations[0].substitutions["n"]).toBe(10, "3rd mail should have added n to templateArgs for `n`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 3, () => done.fail("should not send 5 mails"));
@@ -249,11 +249,11 @@ describe("SendGroupedMailHandler", () => {
 				message: { reqId, data: mailData }
 			});
 
-        /**
-         * Should push first notifciation; 1
-         * Should push the next 5 mails; 1 + 1 = 2
-         * Should send the next 10 mails each time 10 mails add upp; 2 + (40 / 10) = 6
-         */
+		/**
+		 * Should push first notifciation; 1
+		 * Should push the next 5 mails; 1 + 1 = 2
+		 * Should send the next 10 mails each time 10 mails add upp; 2 + (40 / 10) = 6
+		 */
 		expect(mockSendGrid.invocations[email]).toBe(6, "should have sent 6 grouped mails");
 	});
 
