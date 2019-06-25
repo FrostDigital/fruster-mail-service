@@ -36,6 +36,10 @@ module.exports = {
 
 		let db;
 
+		if (config.catchAllEmail) {
+			log.warn(`Catch all is enabled - all emails will be sent to ${config.catchAllEmail} - this should NOT be used in production`);
+		}
+
 		if (config.groupedMailsEnabled) {
 			db = await mongo.connect(mongoUrl);
 			await registerIndexes(db);

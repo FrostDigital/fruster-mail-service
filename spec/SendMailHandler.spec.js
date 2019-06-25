@@ -1,11 +1,12 @@
 const uuid = require("uuid");
-const bus = require("fruster-bus");
+const bus = require("fruster-bus").testBus;
 const testUtils = require("fruster-test-utils");
 const constants = require("../lib/constants");
 const errors = require("../lib/errors");
 const service = require("../fruster-mail-service");
 const MockSendGrid = require("./support/MockSendGrid");
 const specConstants = require("./support/spec-constants");
+const config = require("../config");
 
 describe("SendMailHandler", () => {
 
@@ -166,6 +167,29 @@ describe("SendMailHandler", () => {
 			expect(error.code).toBe("MISSING_FIELDS", "err.code");
 			done();
 		}
+	});
+
+	it("should send mail to catch all email", async () => {
+		// Set catch all in config before test
+		config.catchAllEmail = "henrik.lundqvist@nhl.com";
+
+		const mail = {
+			to: email,
+			from: "fruster@frost.se",
+			subject: "Hello world from template test",
+			templateId: transactionalTemplateId
+		};
+
+		const { status } = await bus.request({
+			subject: "mail-service.send",
+			message: { data: mail }
+		});
+
+		expect(mockSendGrid.invocations[config.catchAllEmail]).toBe(1, "should have sent one mail to catch all email");
+		expect(status).toBe(200);
+
+		// Clean up config after test
+		delete config.catchAllEmail;
 	});
 
 });

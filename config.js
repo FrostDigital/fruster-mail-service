@@ -3,18 +3,22 @@ const log = require("fruster-log");
 
 module.exports = {
 
-	// NATS servers, set multiple if using cluster
-	// Example: `"nats://10.23.45.1:4222", "nats://10.23.41.8:4222"`
+	/**
+	 * NATS servers, set multiple if using cluster
+	 * Example: `"nats://10.23.45.1:4222", "nats://10.23.41.8:4222"`
+	 */
 	bus: process.env.BUS || "nats://localhost:4222",
 
 	/** Mongo database URL */
 	mongoUrl: process.env.MONGO_URL || "mongodb://localhost:27017/push-service",
 
-	// Domains we are allowed to send from
+	/** Domains we are allowed to send from */
 	defaultFrom: process.env.DEFAULT_FROM || "no-reply@frost.se",
 
-	// Your secret sendgrid API key from here:
-	// https://app.sendgrid.com/settings/api_keys
+	/**
+	 * Your secret sendgrid API key from here:
+	 * https://app.sendgrid.com/settings/api_keys
+	 */
 	sendgridApiKey: process.env.SENDGRID_API_KEY || "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",
 
 	/** Characters around variables placed within templates. For instanace -firstName- */
@@ -32,7 +36,13 @@ module.exports = {
 	groupedMailBatches: parseBatchString(process.env.GROUPED_MAIL_BATCHES || "1,0m;5,2m;30,5m"),
 
 	/** Cron for processing timed out grouped mails, defaults to once every minute */
-	groupedMailsTimeoutProcessingCron: process.env.GROUPED_MAILS_TIMEOUT_PROCESSING_CRON || "* * * * *"
+	groupedMailsTimeoutProcessingCron: process.env.GROUPED_MAILS_TIMEOUT_PROCESSING_CRON || "* * * * *",
+
+	/**
+	 * Will direct all email to this "catch all" email if set.
+	 * WARNING: SHOULD ONLY BE USED FOR TESTING PURPOSES!
+	 */
+	catchAllEmail: process.env.CATCH_ALL_EMAIL
 
 };
 
