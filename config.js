@@ -40,7 +40,7 @@ module.exports = {
 
 	/**
 	 * Will direct all email to this "catch all" email if set.
-	 * Note that `WHITELIST_DOMAINS` will override this.
+	 * Note that `CATCH_ALL_WHITELIST` will override this.
 	 * WARNING: SHOULD ONLY BE USED FOR TESTING PURPOSES!
 	 */
 	catchAllEmail: process.env.CATCH_ALL_EMAIL,
