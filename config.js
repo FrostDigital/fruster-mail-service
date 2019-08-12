@@ -47,7 +47,7 @@ module.exports = {
 
 	/**
 	 * Will pass thru emails to these domains even though `CATCH_ALL_EMAIL` is set.
-	 * Only applicable of `CATCH_ALL_EMAIL` is set.
+	 * Only applicable if `CATCH_ALL_EMAIL` is set.
 	 *
 	 * Set multiple values as commas separated string, for example:
 	 * `frostdigital.se,frost.se`
