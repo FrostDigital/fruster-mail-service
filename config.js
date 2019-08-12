@@ -40,9 +40,19 @@ module.exports = {
 
 	/**
 	 * Will direct all email to this "catch all" email if set.
+	 * Note that `WHITELIST_DOMAINS` will override this.
 	 * WARNING: SHOULD ONLY BE USED FOR TESTING PURPOSES!
 	 */
-	catchAllEmail: process.env.CATCH_ALL_EMAIL
+	catchAllEmail: process.env.CATCH_ALL_EMAIL,
+
+	/**
+	 * Will pass thru emails to these domains even though `CATCH_ALL_EMAIL` is set.
+	 * Only applicable of `CATCH_ALL_EMAIL` is set.
+	 *
+	 * Set multiple values as commas separated string, for example:
+	 * `frostdigital.se,frost.se`
+	 */
+	catchAllWhitelist: parseArray(process.env.CATCH_ALL_WHITELIST)
 
 };
 
