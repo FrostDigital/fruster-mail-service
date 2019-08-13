@@ -1,5 +1,4 @@
 const SendgridMail = require("../lib/models/SendgridMail");
-const config = require("../config");
 
 describe("SendgridMail", () => {
 

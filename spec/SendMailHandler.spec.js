@@ -181,7 +181,7 @@ describe("SendMailHandler", () => {
 		};
 
 		const { status } = await bus.request({
-			subject: "mail-service.send",
+			subject: constants.endpoints.service.SEND_MAIL,
 			message: { data: mail }
 		});
 
@@ -214,12 +214,12 @@ describe("SendMailHandler", () => {
 		};
 
 		await bus.request({
-			subject: "mail-service.send",
+			subject: constants.endpoints.service.SEND_MAIL,
 			message: { data: mail1 }
 		});
 
 		await bus.request({
-			subject: "mail-service.send",
+			subject: constants.endpoints.service.SEND_MAIL,
 			message: { data: mail2 }
 		});
 
