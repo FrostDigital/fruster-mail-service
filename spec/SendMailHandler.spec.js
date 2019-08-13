@@ -181,7 +181,7 @@ describe("SendMailHandler", () => {
 		};
 
 		const { status } = await bus.request({
-			subject: "mail-service.send",
+			subject: constants.endpoints.service.SEND_MAIL,
 			message: { data: mail }
 		});
 
@@ -190,6 +190,45 @@ describe("SendMailHandler", () => {
 
 		// Clean up config after test
 		delete config.catchAllEmail;
+	});
+
+	it("should send mail to whitelisted domain even if catch all email is set", async () => {
+		// Set catch all in config before test
+		config.catchAllEmail = "henrik.lundqvist@nhl.com";
+		config.catchAllWhitelist = ["nfl.com", "nba.com"];
+
+		const toWhitelistedEmail = "michael.jordan@nba.com";
+
+		const mail1 = {
+			to: toWhitelistedEmail,
+			from: "fruster@frost.se",
+			subject: "Hello world from template test",
+			templateId: transactionalTemplateId
+		};
+
+		const mail2 = {
+			to: email,
+			from: "fruster@frost.se",
+			subject: "Hello world from template test",
+			templateId: transactionalTemplateId
+		};
+
+		await bus.request({
+			subject: constants.endpoints.service.SEND_MAIL,
+			message: { data: mail1 }
+		});
+
+		await bus.request({
+			subject: constants.endpoints.service.SEND_MAIL,
+			message: { data: mail2 }
+		});
+
+		expect(mockSendGrid.invocations[toWhitelistedEmail]).toBe(1, "should have sent one mail to whitelisted email");
+		expect(mockSendGrid.invocations[config.catchAllEmail]).toBe(1, "should have sent one mail to catch all email");
+
+		// Clean up config after test
+		delete config.catchAllEmail;
+		delete config.catchAllWhitelist;
 	});
 
 });
