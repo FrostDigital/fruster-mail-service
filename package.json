@@ -1,29 +1,35 @@
 {
-    "name": "fruster-mail-service",
-    "version": "0.0.2",
-    "private": true,
-    "scripts": {
-        "start": "node ./app.js",
-        "test": "node ./spec/support/jasmine-runner.js"
-    },
-    "dependencies": {
-        "fruster-bus": "^0.5.3",
-        "fruster-health": "0.0.13",
-        "fruster-log": "0.0.18",
-        "lodash": "^4.17.4",
-        "nats": "^0.7.24",
-        "npm": "^5.6.0",
-        "sendgrid": "^5.2.3",
-        "uuid": "^3.1.0",
-        "winston": "^2.4.0"
-    },
-    "devDependencies": {
-        "fruster-test-utils": "^0.4.0",
-        "jasmine": "^2.8.0",
-        "jasmine-spec-reporter": "^4.2.1",
-        "nats-server-control": "0.0.1"
-    },
-    "engines": {
-        "node": "10.5.0"
-    }
+	"name": "fruster-mail-service",
+	"version": "0.0.2",
+	"private": true,
+	"scripts": {
+		"start": "node ./app.js",
+		"test": "nyc --reporter=html --check-coverage --lines 80 node ./spec/support/jasmine-runner.js"
+	},
+	"dependencies": {
+		"@sendgrid/mail": "^6.4.0",
+		"fruster-bus": "^0.5.9",
+		"fruster-errors": "0.1.2",
+		"fruster-health": "^0.0.13",
+		"fruster-log": "^0.0.18",
+		"mongodb": "^2.2.36",
+		"uuid": "^3.3.2"
+	},
+	"devDependencies": {
+		"@types/mongodb": "2.2.19",
+		"fruster-test-utils": "^0.5.0",
+		"jasmine": "^3.4.0",
+		"jasmine-spec-reporter": "^4.2.1",
+		"nyc": "14.1.1"
+	},
+	"engines": {
+		"node": "10.5.0"
+	},
+	"nyc": {
+		"exclude": [
+			"spec/*",
+			"lib/errors.js",
+			"config.js"
+		]
+	}
 }
