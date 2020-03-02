@@ -19,13 +19,10 @@ describe("SendMailHandler", () => {
 	const transactionalTemplateId = "d-c3bed683b80541fc9397489fe7223c37";
 
 	const jsonToSendGridNormalMail = {
-		personalizations: [{
-			to: [{ email }],
-			subject: "Hello world from automated test 2.0"
-		}],
+		to: [{ email }],
+		subject: "Hello world from automated test 2.0",
 		from: { email: "fruster@frost.se" },
-		content: [{ type: "text/plain", value: "This is a message from me in the future: This is not a good idea. IT IS FIXED!" }],
-		template_id: undefined
+		html: "This is a message from me in the future: This is not a good idea. IT IS FIXED!"
 	};
 
 	const jsonToSendGridLegacyTemplateMail = {

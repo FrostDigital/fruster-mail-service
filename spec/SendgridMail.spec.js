@@ -14,11 +14,10 @@ describe("SendgridMail", () => {
 
 		const json = mail.toJSON();
 
-		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
-		expect(json.personalizations[0].subject).toBe("Amen");
+		expect(json.to[0].email).toBe("joel@frost.se");
+		expect(json.subject).toBe("Amen");
 		expect(json.from.email).toBe("god@frost.se");
-		expect(json.content[0].value).toBe("God Bless You");
-		expect(json.content[0].type).toBe("text/plain");
+		expect(json.html).toBe("God Bless You");
 	});
 
 	it("should create valid mail using template", () => {
@@ -63,12 +62,11 @@ describe("SendgridMail", () => {
 
 		const json = mail.toJSON();
 
-		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
-		expect(json.personalizations[0].to[1].email).toBe("bob@frost.se");
-		expect(json.personalizations[0].subject).toBe("Amen");
+		expect(json.to[0].email).toBe("joel@frost.se");
+		expect(json.to[1].email).toBe("bob@frost.se");
+		expect(json.subject).toBe("Amen");
 		expect(json.from.email).toBe("god@frost.se");
-		expect(json.content[0].value).toBe("God Bless You");
-		expect(json.content[0].type).toBe("text/plain");
+		expect(json.html).toBe("God Bless You");
 	});
 
 	it("should create mail using legacy template", () => {
