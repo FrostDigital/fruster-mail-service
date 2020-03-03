@@ -89,21 +89,21 @@ describe("SendGroupedMailHandler", () => {
 		const templateMail = { ...mailData, templateId };
 
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.template_id).toBe(templateId, "1st mail have template id");
-			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
-			expect(data.personalizations[0].substitutions["n"]).toBe(1, "1st mail should have added n to templateArgs for `n`");
+			expect(data.templateId).toBe(templateId, "1st mail have template id");
+			expect(data.subject).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.substitutions["n"]).toBe(1, "1st mail should have added n to templateArgs for `n`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 1, (data) => {
-			expect(data.template_id).toBe(templateId, "2nd mail have template id");
-			expect(data.personalizations[0].subject).toContain("5", "2nd mail should have grouped 5 mail");
-			expect(data.personalizations[0].substitutions["n"]).toBe(5, "2nd mail should have added n to templateArgs for `n`");
+			expect(data.templateId).toBe(templateId, "2nd mail have template id");
+			expect(data.subject).toContain("5", "2nd mail should have grouped 5 mail");
+			expect(data.substitutions["n"]).toBe(5, "2nd mail should have added n to templateArgs for `n`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 2, (data) => {
-			expect(data.template_id).toBe(templateId, "3rd mail have template id");
-			expect(data.personalizations[0].subject).toContain("10", "3rd mail should have grouped 10 mail");
-			expect(data.personalizations[0].substitutions["n"]).toBe(10, "3rd mail should have added n to templateArgs for `n`");
+			expect(data.templateId).toBe(templateId, "3rd mail have template id");
+			expect(data.subject).toContain("10", "3rd mail should have grouped 10 mail");
+			expect(data.substitutions["n"]).toBe(10, "3rd mail should have added n to templateArgs for `n`");
 		});
 
 		mockSendGrid.mockInterceptor(email, 3, () => done.fail("should not send 5 mails"));
