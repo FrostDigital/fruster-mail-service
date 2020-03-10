@@ -19,35 +19,27 @@ describe("SendMailHandler", () => {
 	const transactionalTemplateId = "d-c3bed683b80541fc9397489fe7223c37";
 
 	const jsonToSendGridNormalMail = {
-		personalizations: [{
-			to: [{ email }],
-			subject: "Hello world from automated test 2.0"
-		}],
-		from: { email: "fruster@frost.se" },
-		content: [{ type: "text/plain", value: "This is a message from me in the future: This is not a good idea. IT IS FIXED!" }],
-		template_id: undefined
+		to: [email],
+		subject: "Hello world from automated test 2.0",
+		from: "fruster@frost.se",
+		text: "This is a message from me in the future: This is not a good idea. IT IS FIXED!",
+		html: "This is a message from me in the future: This is not a good idea. IT IS FIXED!"
 	};
 
 	const jsonToSendGridLegacyTemplateMail = {
-		personalizations: [{
-			to: [{ email }],
-			subject: "Hello world from template test",
-			substitutions: { name: "Joel" }
-		}],
-		from: { email: "fruster@frost.se" },
-		content: [{ type: "text/html", value: " " }],
-		template_id: legacyTemplateId
+		to: [email],
+		subject: "Hello world from template test",
+		substitutions: { name: "Joel" },
+		from: "fruster@frost.se",
+		templateId: legacyTemplateId
 	};
 
 	const jsonToSendGridTransactionalTemplateMail = {
-		personalizations: [{
-			to: [{ email }],
-			subject: "Hello world from template test",
-			dynamic_template_data: { name: "Joel" }
-		}],
-		from: { email: "fruster@frost.se" },
-		content: [{ type: "text/html", value: " " }],
-		template_id: transactionalTemplateId
+		to: [email],
+		subject: "Hello world from template test",
+		dynamic_template_data: { name: "Joel", subject: "Hello world from template test" },
+		from: "fruster@frost.se",
+		templateId: transactionalTemplateId
 	};
 
 	testUtils.startBeforeEach({

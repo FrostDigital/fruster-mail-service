@@ -58,28 +58,28 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 
 	it("should send grouped mails", async (done) => {
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.subject).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.html).toContain("1", "1st mail should have grouped 1 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 1, (data) => {
-			expect(data.personalizations[0].subject).toContain("5", "2nd mail should have grouped 5 mails");
-			expect(data.content[0].value).toContain("5", "2nd mail should have grouped 5 mails");
+			expect(data.subject).toContain("5", "2nd mail should have grouped 5 mails");
+			expect(data.html).toContain("5", "2nd mail should have grouped 5 mails");
 		});
 
 		mockSendGrid.mockInterceptor(email, 2, (data) => {
-			expect(data.personalizations[0].subject).toContain("10", "3rd mail should have grouped 10 mails");
-			expect(data.content[0].value).toContain("10", "3rd mail should have grouped 10 mails");
+			expect(data.subject).toContain("10", "3rd mail should have grouped 10 mails");
+			expect(data.html).toContain("10", "3rd mail should have grouped 10 mails");
 		});
 
 		mockSendGrid.mockInterceptor(email, 3, (data) => {
-			expect(data.personalizations[0].subject).toContain("5", "4th mail should have grouped 5 mails");
-			expect(data.content[0].value).toContain("5", "4th mail should have grouped 5 mails");
+			expect(data.subject).toContain("5", "4th mail should have grouped 5 mails");
+			expect(data.html).toContain("5", "4th mail should have grouped 5 mails");
 		});
 
 		mockSendGrid.mockInterceptor(email, 4, (data) => {
-			expect(data.personalizations[0].subject).toContain("5", "5th mail should have grouped 5 mails");
-			expect(data.content[0].value).toContain("5", "5th mail should have grouped 5 mails");
+			expect(data.subject).toContain("5", "5th mail should have grouped 5 mails");
+			expect(data.html).toContain("5", "5th mail should have grouped 5 mails");
 		});
 
 		mockSendGrid.mockInterceptor(email, 5, () => done.fail("Should not send 6 mails"));
@@ -129,8 +129,8 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 
 	it("should remove mail batch database entry if batch is timed out and batch level is 0", async (done) => {
 		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.personalizations[0].subject).toContain("1", "1st mail should have grouped 1 mail");
-			expect(data.content[0].value).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.subject).toContain("1", "1st mail should have grouped 1 mail");
+			expect(data.html).toContain("1", "1st mail should have grouped 1 mail");
 		});
 
 		mockSendGrid.mockInterceptor(email, 1, () => done.fail("Should not send 2 mails"));

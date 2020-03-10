@@ -14,11 +14,10 @@ describe("SendgridMail", () => {
 
 		const json = mail.toJSON();
 
-		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
-		expect(json.personalizations[0].subject).toBe("Amen");
-		expect(json.from.email).toBe("god@frost.se");
-		expect(json.content[0].value).toBe("God Bless You");
-		expect(json.content[0].type).toBe("text/plain");
+		expect(json.to[0]).toBe("joel@frost.se");
+		expect(json.subject).toBe("Amen");
+		expect(json.from).toBe("god@frost.se");
+		expect(json.text).toBe("God Bless You");
 	});
 
 	it("should create valid mail using template", () => {
@@ -30,12 +29,11 @@ describe("SendgridMail", () => {
 
 		expect(mail.validate().length).toBe(0);
 
-		const { personalizations, from: { email }, content } = mail.toJSON();
+		const { to, subject, from } = mail.toJSON();
 
-		expect(personalizations[0].to[0].email).toBe("joel@frost.se");
-		expect(personalizations[0].subject).toBeFalsy();
-		expect(email).toBe("god@frost.se");
-		expect(content[0].value).toBe(" ");
+		expect(to[0]).toBe("joel@frost.se");
+		expect(subject).toBeFalsy();
+		expect(from).toBe("god@frost.se");
 	});
 
 	it("should fail to validate mail", () => {
@@ -63,12 +61,11 @@ describe("SendgridMail", () => {
 
 		const json = mail.toJSON();
 
-		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
-		expect(json.personalizations[0].to[1].email).toBe("bob@frost.se");
-		expect(json.personalizations[0].subject).toBe("Amen");
-		expect(json.from.email).toBe("god@frost.se");
-		expect(json.content[0].value).toBe("God Bless You");
-		expect(json.content[0].type).toBe("text/plain");
+		expect(json.to[0]).toBe("joel@frost.se");
+		expect(json.to[1]).toBe("bob@frost.se");
+		expect(json.subject).toBe("Amen");
+		expect(json.from).toBe("god@frost.se");
+		expect(json.html).toBe("God Bless You");
 	});
 
 	it("should create mail using legacy template", () => {
@@ -91,13 +88,12 @@ describe("SendgridMail", () => {
 
 		const json = mail.toJSON();
 
-		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
-		expect(json.personalizations[0].to[1].email).toBe("bob@frost.se");
-		expect(json.personalizations[0].subject).toBe("Amen");
-		expect(json.personalizations[0].substitutions).toEqual(mail.templateArgs, "substitutions");
-		expect(json.from.email).toBe("god@frost.se");
-		expect(json.content[0].value).toBe("God Bless You");
-		expect(json.content[0].type).toBe("text/plain");
+		expect(json.to[0]).toBe("joel@frost.se");
+		expect(json.to[1]).toBe("bob@frost.se");
+		expect(json.subject).toBe("Amen");
+		expect(json.substitutions).toEqual(mail.templateArgs, "substitutions");
+		expect(json.from).toBe("god@frost.se");
+		expect(json.html).toBe("God Bless You");
 	});
 
 	it("should create mail using transactional template", () => {
@@ -120,13 +116,12 @@ describe("SendgridMail", () => {
 
 		const json = mail.toJSON();
 
-		expect(json.personalizations[0].to[0].email).toBe("joel@frost.se");
-		expect(json.personalizations[0].to[1].email).toBe("bob@frost.se");
-		expect(json.personalizations[0].subject).toBe("Amen");
-		expect(json.personalizations[0].dynamic_template_data).toEqual(mail.templateArgs, "dynamic_template_data");
-		expect(json.from.email).toBe("god@frost.se");
-		expect(json.content[0].value).toBe("God Bless You");
-		expect(json.content[0].type).toBe("text/plain");
+		expect(json.to[0]).toBe("joel@frost.se");
+		expect(json.to[1]).toBe("bob@frost.se");
+		expect(json.subject).toBe("Amen");
+		expect(json.dynamic_template_data).toEqual(mail.templateArgs, "dynamic_template_data");
+		expect(json.from).toBe("god@frost.se");
+		expect(json.html).toBe("God Bless You");
 	});
 
 });

@@ -7,7 +7,8 @@ class MockSendGrid {
 	}
 
 	async send(body) {
-		const { personalizations: { [0]: { to: { [0]: { email: to } } } } } = body;
+		const to = body.to[0];
+
 		const resp = this.mockResponses[to];
 		const currentInvocation = this.invocations[to] || 0;
 
