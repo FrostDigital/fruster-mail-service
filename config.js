@@ -19,7 +19,7 @@ module.exports = {
 	 * Your secret sendgrid API key from here:
 	 * https://app.sendgrid.com/settings/api_keys
 	 */
-	sendgridApiKey: process.env.SENDGRID_API_KEY || "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",
+	sendgridApiKey: process.env.SENDGRID_API_KEY || "",
 
 	/** Characters around variables placed within templates. For instanace -firstName- */
 	substitutionCharacter: parseArray(process.env.SUBSTITUTION_CHARACTER) || ["-", "-"],
