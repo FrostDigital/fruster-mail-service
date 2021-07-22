@@ -51,19 +51,19 @@ describe("SendGroupedMailHandler", () => {
 	});
 
 	it("should send grouped mails", async () => {
-		mockSendGrid.mockInterceptor(email, 0, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 0, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 1, (data: MailDataRequired) => {
-			expect(data.subject).toContain("5");
-			expect(data.html).toContain("5");
+		mockSendGrid.mockInterceptor(email, 1, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("5");
+			expect(html).toContain("5");
 		});
 
-		mockSendGrid.mockInterceptor(email, 2, (data: MailDataRequired) => {
-			expect(data.subject).toContain("10");
-			expect(data.html).toContain("10");
+		mockSendGrid.mockInterceptor(email, 2, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("10");
+			expect(html).toContain("10");
 		});
 
 		mockSendGrid.mockInterceptor(email, 3, () => fail("Should not send 5 mails"));
@@ -84,19 +84,19 @@ describe("SendGroupedMailHandler", () => {
 	});
 
 	it("should send grouped mails to multiple emails", async () => {
-		mockSendGrid.mockInterceptor(email, 0, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 0, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 1, (data: MailDataRequired) => {
-			expect(data.subject).toContain("5");
-			expect(data.html).toContain("5");
+		mockSendGrid.mockInterceptor(email, 1, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("5");
+			expect(html).toContain("5");
 		});
 
-		mockSendGrid.mockInterceptor(email, 2, (data: MailDataRequired) => {
-			expect(data.subject).toContain("10");
-			expect(data.html).toContain("10");
+		mockSendGrid.mockInterceptor(email, 2, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("10");
+			expect(html).toContain("10");
 		});
 
 		mockSendGrid.mockInterceptor(email, 3, () => fail("Should not send 5 mails"));
@@ -160,24 +160,24 @@ describe("SendGroupedMailHandler", () => {
 	});
 
 	it("should only group mails with the same key", async () => {
-		mockSendGrid.mockInterceptor(email, 0, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 0, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 1, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 1, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 2, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 2, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 3, (data: MailDataRequired) => {
-			expect(data.subject).toContain("5");
-			expect(data.html).toContain("5");
+		mockSendGrid.mockInterceptor(email, 3, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("5");
+			expect(html).toContain("5");
 		});
 
 		mockSendGrid.mockInterceptor(email, 4, () => fail("should not send 5 mails"));
@@ -217,24 +217,24 @@ describe("SendGroupedMailHandler", () => {
 	});
 
 	it("should only group mails with the same key and userId", async () => {
-		mockSendGrid.mockInterceptor(email, 0, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 0, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 1, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 1, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 2, (data: MailDataRequired) => {
-			expect(data.subject).toContain("1");
-			expect(data.html).toContain("1");
+		mockSendGrid.mockInterceptor(email, 2, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 3, (data: MailDataRequired) => {
-			expect(data.subject).toContain("5");
-			expect(data.html).toContain("5");
+		mockSendGrid.mockInterceptor(email, 3, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("5");
+			expect(html).toContain("5");
 		});
 
 		mockSendGrid.mockInterceptor(email, 4, () => fail("should not send 5 mails"));
