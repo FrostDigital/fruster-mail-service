@@ -1,6 +1,6 @@
 {
 	"name": "fruster-mail-service",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"private": true,
 	"scripts": {
 		"start": "ts-node ./app.ts",

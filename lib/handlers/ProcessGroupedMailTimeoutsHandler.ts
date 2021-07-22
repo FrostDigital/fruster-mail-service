@@ -1,4 +1,3 @@
-import ms from "ms";
 import { FrusterRequest, FrusterResponse } from "fruster-bus";
 import { subscribe, injectable, inject } from "fruster-decorators";
 import log from "fruster-log";

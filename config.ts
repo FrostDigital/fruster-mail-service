@@ -59,7 +59,7 @@ export default {
 	 */
 	sendGridApiKey: process.env.SENDGRID_API_KEY || "",
 
-	/** Characters around variables placed within templates. For instanace -firstName- */
+	/** Characters around variables placed within templates. For instance -firstName- */
 	substitutionCharacter: parseArray(process.env.SUBSTITUTION_CHARACTER) || ["-", "-"],
 
 	/** Whether or not to enable grouped mails */

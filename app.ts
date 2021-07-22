@@ -2,9 +2,9 @@
 import * as log from "fruster-log";
 import { start as healthStart } from "fruster-health";
 
-import constants from "./lib/constants";
 import config from "./config";
 import { start } from "./fruster-mail-service";
+import constants from "./lib/constants";
 import SendGridMailClient from "./lib/clients/SendGridMailClient";
 import AbstractMailClient from "./lib/clients/AbstractMailClient";
 
