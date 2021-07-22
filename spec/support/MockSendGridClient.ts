@@ -1,84 +1,63 @@
-class MockSendGrid {
+import SendGridMailClient from "../../lib/clients/SendGridMailClient";
+import { SendMailParams } from "../../lib/models/Mail";
+
+type Status = "success" | "failure";
+
+class MockSendGridClient extends SendGridMailClient {
+
+	private mockResponses: { [email: string]: { type: Status, error?: string } } = {};
+	public invocations: { [to: string]: number } = {};
+	public interceptors: { [invocation: number]: { [to: string]: Function } } = {};
 
 	constructor() {
-		this.mockResponses = {};
-		this.interceptors = {};
-		this.invocations = {};
+		super();
 	}
 
-	async send(body) {
-		const to = body.to[0];
+	/**
+	 * Send mail using template or plain
+	 */
+	async sendMail({ to, from, subject, templateId, templateArgs, message }: SendMailParams): Promise<void> {
+		const toEmail = Array.isArray(to) ? to[0] : to;
 
-		const resp = this.mockResponses[to];
-		const currentInvocation = this.invocations[to] || 0;
+		const currentInvocation = this.invocations[toEmail] ?? 0;
 
-		if (this.interceptors[currentInvocation] && this.interceptors[currentInvocation][to])
-			this.interceptors[currentInvocation][to](body);
+		if (this.interceptors[currentInvocation]?.[toEmail])
+			this.interceptors[currentInvocation]?.[toEmail](this.getMailData({ to, from, subject, templateId, templateArgs, message }));
 
-		if (this.interceptors[to])
-			this.interceptors[to](body);
-
-		if (!this.invocations[to])
-			this.invocations[to] = 1;
+		if (!this.invocations[toEmail])
+			this.invocations[toEmail] = 1;
 		else
-			this.invocations[to]++;
+			this.invocations[toEmail]++;
 
-		if (!resp)
-			throw "Missing mock response for device token " + JSON.stringify(to);
-		else if (resp.type === "success")
-			return Promise.resolve();
-		else
-			return Promise.reject(resp.error);
+		const response = this.mockResponses[toEmail];
+
+		if (!response)
+			throw new Error(`Missing mock response for device token ${toEmail}`);
+
+		response.type === "success" ? Promise.resolve() : Promise.reject(response.error);
 	}
 
-	setApiKey(key) { }
-
-	setSubstitutionWrappers(param1, param2) { }
-
-	/**
-	 * @param {String} email
-	 */
-	mockSuccess(email) {
-		this.mockResponses[email] = {
-			type: "success"
-		};
+	mockSuccess(email: string) {
+		this.mockResponses[email] = { type: "success" };
 	}
 
-	/**
-	 * @param {String} email
-	 */
-	mockNotRegisteredFailure(email) {
-		this.mockResponses[email] = {
-			type: "failure",
-			error: "NotRegistered"
-		};
+	mockNotRegisteredFailure(email: string) {
+		this.mockResponses[email] = { type: "failure", error: "NotRegistered" };
 	}
 
-	/**
-	 * Adds a callback function for a registration token for a specific invocation
-	 *
-	 * @param {String} toEmail
-	 * @param {Number} invocation
-	 * @param {Function} func
-	 */
-	mockInterceptor(toEmail, invocation, func) {
+	mockInterceptor(email: string, invocation: number, func: Function) {
 		if (!this.interceptors[invocation])
 			this.interceptors[invocation] = {};
 
-		this.interceptors[invocation][toEmail] = func;
+		this.interceptors[invocation][email] = func;
 	}
 
-	/**
-	 * Adds a callback function for a registration token for a specific invocation
-	 *
-	 * @param {String} toEmail
-	 * @param {Function} func
-	 */
-	mockInterceptorAll(toEmail, func) {
-		this.interceptors[toEmail] = func;
+	mockInterceptorAll(email: string, func: Function) {
+		if (!this.interceptors[0])
+			this.interceptors[0] = {};
+
+		this.interceptors[0][email] = func;
 	}
-
-
 }
 
-module.exports = MockSendGrid;
+export default MockSendGridClient;
