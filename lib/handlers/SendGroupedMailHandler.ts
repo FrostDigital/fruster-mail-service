@@ -4,8 +4,8 @@ import { subscribe, injectable, inject } from "fruster-decorators";
 import log from "fruster-log";
 
 import config from "../../config";
-import LogUtils from "../LogUtils";
-import BatchLevelUtils from "../BatchLevelUtils";
+import LogUtils from "../utils/LogUtils";
+import BatchLevelUtils from "../utils/BatchLevelUtils";
 import SendGroupedMailRequest from "../schemas/ISendGroupedMailRequestSchemas";
 import MailManager from "../managers/MailManager";
 import GroupedMailRepo from "../repos/GroupedMailRepo";

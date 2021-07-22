@@ -1,4 +1,4 @@
-import * as sgMail from "@sendgrid/mail";
+import sgMail from "@sendgrid/mail";
 import log from "fruster-log";
 
 import config from "../../config";
@@ -10,11 +10,6 @@ class SendGridMailClient extends AbstractMailClient {
 
 	constructor() {
 		super();
-	}
-
-	private setSubstitutionWrappers() {
-		if (!process.env.CI)
-			sgMail.setSubstitutionWrappers(config.substitutionCharacter[0], config.substitutionCharacter[1]);
 	}
 
 	/**
@@ -48,8 +43,14 @@ class SendGridMailClient extends AbstractMailClient {
 				if (templateId.startsWith("d-")) {// For dynamic templates
 					return { to, from, subject, templateId, dynamicTemplateData: templateArgs };
 				} else { // For legacy templates
-					this.setSubstitutionWrappers();
-					return { to, from, subject, templateId, substitutions: templateArgs };
+					return {
+						to,
+						from,
+						subject,
+						templateId,
+						substitutions: templateArgs,
+						substitutionWrappers: config.substitutionCharacter
+					};
 				}
 			} else {
 				return { to, from, subject, templateId };
