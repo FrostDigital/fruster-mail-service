@@ -1,132 +1,106 @@
-const sgMail = require('@sendgrid/mail');
-const uuid = require("uuid");
-const mongo = require("mongodb");
-const Db = mongo.Db;
-const bus = require("fruster-bus");
-const log = require("fruster-log");
-const config = require("./config");
-const docs = require("./lib/docs");
-const constants = require("./lib/constants");
+import { connect, Db } from "mongodb";
+import { v4 } from "uuid";
+import bus from "fruster-bus";
+import log from "fruster-log";
+import TypeScriptSchemaResolver, { setSchemaResolverFilePattern } from "fruster-bus-ts-schema-resolver";
+import { injections } from "fruster-decorators";
 
-const GroupedMailBatchRepo = require("./lib/repos/GroupedMailBatchRepo");
-const GroupedMailRepo = require("./lib/repos/GroupedMailRepo");
+import config from "./config";
+import constants from "./lib/constants";
+import AbstractMailClient from "./lib/clients/AbstractMailClient";
+import GroupedMailBatchRepo from "./lib/repos/GroupedMailBatchRepo";
+import GroupedMailRepo from "./lib/repos/GroupedMailRepo";
+import MailManager from "./lib/managers/MailManager";
 
-const MailManager = require("./lib/managers/MailManager");
+import SendMailHandler from "./lib/handlers/SendMailHandler";
+import SendGroupedMailHandler from "./lib/handlers/SendGroupedMailHandler";
+import ProcessGroupedMailTimeoutsHandler, {
+	SERVICE_SUBJECT as PROCESS_GROUPED_MAIL_TIMEOUTS_SUBJECT
+} from "./lib/handlers/ProcessGroupedMailTimeoutsHandler";
 
-const SendMailHandler = require("./lib/handlers/SendMailHandler");
-const SendGroupedMailHandler = require("./lib/handlers/SendGroupedMailHandler");
-const ProcessGroupedMailTimeoutsHandler = require("./lib/handlers/ProcessGroupedMailTimeoutsHandler");
 
-const SendMailRequest = require("./lib/schemas/SendMailRequest");
-const SendGroupedMailRequest = require("./lib/schemas/SendGroupedMailRequest");
+// Parse files in schema dir as typescript schemas if they match this pattern
+// Example: IFoo.ts
+setSchemaResolverFilePattern("I.*.ts");
 
-/**
- * Usage of mail & email within this service:
- * email => email address
- * mail => an actual email being sent to a user
- */
-module.exports = {
-	/**
-	 * @param {String} busAddress
-	 * @param {String} mongoUrl
-	 * @param {Object} sendGridApiClient
-	 */
-	start: async (busAddress, mongoUrl, sendGridApiClient = sgMail) => {
-		await bus.connect(busAddress);
+export const start = async (busAddress: string, mongoUrl: string, mailClient: AbstractMailClient) => {
+	await bus.connect({
+		address: busAddress,
+		schemaResolver: TypeScriptSchemaResolver,
+	});
 
-		let db;
+	if (config.catchAllEmail)
+		log.warn(`Catch all is enabled - all emails will be sent to ${config.catchAllEmail} - this should NOT be used in production`);
 
-		if (config.catchAllEmail) {
-			log.warn(`Catch all is enabled - all emails will be sent to ${config.catchAllEmail} - this should NOT be used in production`);
-		}
+	const mailManager = new MailManager(mailClient);
 
-		if (config.groupedMailsEnabled) {
-			db = await mongo.connect(mongoUrl);
-			await registerIndexes(db);
+	if (config.groupedMailsEnabled) {
+		const db = await connect(mongoUrl);
+
+		if (!process.env.CI) {
+			await createIndexes(db);
 			registerScheduledJobs();
 		}
 
-		sendGridApiClient.setApiKey(config.sendgridApiKey);
-		sendGridApiClient.setSubstitutionWrappers(config.substitutionCharacter[0], config.substitutionCharacter[1]);
-
-		registerHandlers(db, sendGridApiClient);
+		registerGroupMailHandlers(mailManager, db);
 	}
+
+	registerHandlers(mailManager);
 };
 
-/**
- * @param {Db} db
- */
-function registerHandlers(db, sendGridApiClient) {
-	const mailManager = new MailManager(sendGridApiClient);
+const registerHandlers = (mailManager: MailManager) => {
+	/**
+	 * Http handlers
+	 * Add http handlers here
+	 */
 
-	let sendGroupedMailHandler;
-	let processGroupedMailTimeoutsHandler;
-
-	if (config.groupedMailsEnabled) {
-		const groupedMailBatchRepo = new GroupedMailBatchRepo(db);
-		const groupedMailRepo = new GroupedMailRepo(db);
-
-		sendGroupedMailHandler = new SendGroupedMailHandler(groupedMailBatchRepo, groupedMailRepo, mailManager);
-		processGroupedMailTimeoutsHandler = new ProcessGroupedMailTimeoutsHandler(groupedMailRepo, groupedMailBatchRepo, mailManager);
-	}
-
-	const sendMailHandler = new SendMailHandler(mailManager);
-
-	bus.subscribe({ /** DEPRECATED */
-		subject: constants.endpoints.service.SEND,
-		deprecated: docs.deprecated.SEND,
-		handle: req => sendMailHandler.handle(req)
-	});
-
-	bus.subscribe({
-		subject: constants.endpoints.service.SEND_MAIL,
-		requestSchema: SendMailRequest,
-		docs: docs.service.SEND_MAIL,
-		handle: req => sendMailHandler.handle(req)
-	});
-
-	if (config.groupedMailsEnabled) {
-		bus.subscribe({
-			subject: constants.endpoints.service.SEND_GROUPED_MAIL,
-			requestSchema: SendGroupedMailRequest,
-			docs: docs.service.SEND_GROUPED_MAIL,
-			handle: req => sendGroupedMailHandler.handle(req)
-		});
-
-		bus.subscribe({
-			subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-			docs: docs.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-			handle: () => processGroupedMailTimeoutsHandler.handle()
-		});
-	}
+	/**
+	 * Service handlers
+	 * Add service handlers here
+	 */
+	new SendMailHandler(mailManager);
 }
 
-async function registerIndexes(db) {
+const registerGroupMailHandlers = (mailManager: MailManager, db: Db) => {
+	const groupedMailBatchRepo = new GroupedMailBatchRepo(db);
+	const groupedMailRepo = new GroupedMailRepo(db);
+
+	injections({ groupedMailBatchRepo, groupedMailRepo });
+
+	/**
+	 * Http handlers
+	 * Add http handlers here
+	 */
+
+	/**
+	 * Service handlers
+	 * Add service handlers here
+	 */
+	new SendGroupedMailHandler(mailManager);
+	new ProcessGroupedMailTimeoutsHandler(mailManager);
+}
+
+const createIndexes = async (db: Db) => {
 	try {
-		const groupedMailsCollection = await db.collection(constants.collections.GROUPED_MAILS);
-
-		const groupedMailBatchesCollection = await db.collection(constants.collections.GROUPED_MAIL_BATCHES);
-
-		await groupedMailsCollection.createIndex({ email: 1, key: 1 });
-
-		await groupedMailBatchesCollection.createIndex({ email: 1, key: 1 }, { unique: true });
+		await db.collection(constants.collections.GROUPED_MAILS).createIndex({ email: 1, key: 1 })
+		await db.collection(constants.collections.GROUPED_MAIL_BATCHES).createIndex({ email: 1, key: 1 }, { unique: true });
 	} catch (err) {
 		log.info("Mongodb:", err.message);
 	}
 }
 
-function registerScheduledJobs() {
+const registerScheduledJobs = () => {
 	bus.request({
-		subject: "schedule-service.create-job",
+		subject: constants.createJobService,
 		skipOptionsRequest: true,
 		message: {
-			reqId: uuid.v4(),
+			reqId: v4(),
 			data: {
-				id: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-				subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
+				id: PROCESS_GROUPED_MAIL_TIMEOUTS_SUBJECT,
+				subject: PROCESS_GROUPED_MAIL_TIMEOUTS_SUBJECT,
 				cron: config.groupedMailsTimeoutProcessingCron,
 				description: "Processes time outs for grouped mails"
-			}
-		}
+			},
+		},
 	});
 }

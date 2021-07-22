@@ -1,9 +1,16 @@
-const config = require("./config");
-const service = require('./fruster-mail-service');
-const log = require("fruster-log");
-const constants = require('./lib/constants');
 
-require("fruster-health").start();
+import * as log from "fruster-log";
+import { start as healthStart } from "fruster-health";
+
+import constants from "./lib/constants";
+import config from "./config";
+import { start } from "./fruster-mail-service";
+import SendGridMailClient from "./lib/clients/SendGridMailClient";
+import AbstractMailClient from "./lib/clients/AbstractMailClient";
+
+const getMailClient = (): AbstractMailClient => {
+	return new SendGridMailClient();
+}
 
 /**
  * Main entry point for starting the service.
@@ -12,14 +19,15 @@ require("fruster-health").start();
  * could not be started which most commonly happens if it cannot
  * connect to bus or mongo (if mongo is used).
  */
-(async function () {
-
+(async () => {
 	try {
-		await service.start(config.bus, config.mongoUrl);
+		await start(config.bus, config.mongoUrl, getMailClient());
 		log.info(`Successfully started ${constants.SERVICE_NAME}`);
+		healthStart();
 	} catch (err) {
 		log.error(`Failed starting ${constants.SERVICE_NAME}`, err);
 		process.exit(1);
 	}
+})();
 
-}());
+export default () => { };

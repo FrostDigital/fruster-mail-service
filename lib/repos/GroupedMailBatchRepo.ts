@@ -1,53 +1,46 @@
-const constants = require("../constants");
-const Db = require("mongodb").Db;
+import { Collection, Db } from "mongodb";
+
+import constants from "../constants";
+import GroupedMailBatch from "../models/GroupedMailBatch";
 
 class GroupedMailBatchRepo {
+	private collection: Collection;
 
-	/**
-	 * @param {Db} db
-	 */
-	constructor(db) {
-		this._collection = db.collection(constants.collections.GROUPED_MAIL_BATCHES);
+	constructor(db: Db) {
+		this.collection = db.collection(constants.collections.GROUPED_MAIL_BATCHES);
 	}
 
 	/**
 	* Upserts a GroupedMailBatch entry
-	 *
-	 * @param {String} email
-	 * @param {String} key
-	 * @param {Number} batchLevel
-	 * @param {Date} timeoutDate
 	 */
-	put(email, key, batchLevel, timeoutDate) {
-		return this._collection.update({ email, key }, { $set: { batchLevel, created: new Date(), timeoutDate } }, { upsert: true });
+	async put(email: string, key: string, batchLevel: number, timeoutDate: Date): Promise<void> {
+		await this.collection.updateMany(
+			{ email, key },
+			{ $set: { batchLevel, created: new Date(), timeoutDate } },
+			{ upsert: true }
+		);
 	}
 
 	/**
 	* Gets GroupedMailBatch entries by query
-	 *
-	 * @typedef {Object} GroupedMailBatch
-	 * @property {String} email
-	 * @property {String} key
-	 * @property {Number} batchLevel
-	 * @property {Date} created
-	 *
-	 * @param {Object} query
-	 * @return {Promise<Array<GroupedMailBatch>>}
 	 */
-	async getByQuery(query) {
-		return await this._collection.find(query, { fields: { _id: 0 } }).toArray();
+	async getByQuery(query: object): Promise<GroupedMailBatch[]> {
+		return await this.collection.find(query).project({ _id: 0 }).toArray();
+	}
+
+	/**
+	 * Get a GroupedMailBatch entry by query
+	 */
+	async getOneByQuery(query: object): Promise<GroupedMailBatch | null> {
+		return await this.collection.findOne(query, { fields: { _id: 0 } });
 	}
 
 	/**
 	 * Removes GroupedMailBatch entry by email and key
-	 *
-	 * @param {String} email
-	 * @param {String} key
 	 */
-	remove(email, key) {
-		return this._collection.remove({ email, key });
+	async remove(email: string, key: string): Promise<void> {
+		await this.collection.deleteMany({ email, key });
 	}
-
 }
 
-module.exports = GroupedMailBatchRepo;
+export default GroupedMailBatchRepo;

@@ -1,14 +1,12 @@
 class SpecUtils {
 
-    /**
-     * Waits @param milliSeconds milliseconds before continuing
-     *
-     * @param {Number} milliSeconds
-     */
-	static delay(milliSeconds) {
-		return new Promise((resolve) => setTimeout(() => resolve(), milliSeconds));
+	/**
+	 * Waits @param milliSeconds milliseconds before continuing
+	 */
+	static delay(milliSeconds: number) {
+		return new Promise((resolve) => setTimeout(() => resolve(""), milliSeconds));
 	}
 
 }
 
-module.exports = SpecUtils;
+export default SpecUtils;

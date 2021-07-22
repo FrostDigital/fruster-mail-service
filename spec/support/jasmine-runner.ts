@@ -1,11 +1,15 @@
-var Jasmine = require('jasmine');
-var SpecReporter = require('jasmine-spec-reporter').SpecReporter;
-var noop = function () { };
+const Jasmine = require("jasmine");
+const SpecReporter = require("jasmine-spec-reporter").SpecReporter;
+const noop = function () { };
 
-var jrunner = new Jasmine();
-jrunner.configureDefaultReporter({
-    print: noop
-}); // remove default reporter logs
-jasmine.getEnv().addReporter(new SpecReporter()); // add jasmine-spec-reporter
-jrunner.loadConfigFile(); // load jasmine.json configuration
-jrunner.execute();
+/*
+	Bootstraps Jasmine and use the jasmine-spec-reporter which
+	makes test output look prettier compared to default reporter.
+*/
+let jRunner = new Jasmine({});
+jRunner.configureDefaultReporter({ print: noop });
+jasmine.getEnv().addReporter(new SpecReporter());
+jRunner.loadConfigFile("./spec/support/jasmine.json");
+jRunner.execute();
+
+export default () => { };

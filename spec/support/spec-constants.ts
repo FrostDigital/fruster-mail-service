@@ -1,20 +1,21 @@
-const bus = require("fruster-bus");
-const constants = require("../../lib/constants");
-const service = require("../../fruster-mail-service");
+import bus from "fruster-bus";
+import { FrusterTestUtilsConnection } from "fruster-test-utils";
+import TypeScriptSchemaResolver, { setSchemaResolverFilePattern } from "fruster-bus-ts-schema-resolver";
 
-module.exports = {
+import constants from "../../lib/constants";
+import { start } from "../../fruster-mail-service";
 
-	/**
-	 * @param {Function=} afterStart
-	 */
-	testUtilsOptions: (afterStart) => {
+setSchemaResolverFilePattern("I.*.ts");
+
+export default {
+	testUtilsOptions: (afterStart?: (connection: FrusterTestUtilsConnection) => Promise<void>) => {
 		return {
 			mockNats: true,
 			bus,
-			service,
+			service: { start },
 			afterStart,
-			mongoUrl: `mongodb://localhost:27017/${constants.SERVICE_NAME}-test`
+			mongoUrl: `mongodb://localhost:27017/${constants.SERVICE_NAME}-test`,
+			schemaResolver: TypeScriptSchemaResolver,
 		};
-	}
-
+	},
 };

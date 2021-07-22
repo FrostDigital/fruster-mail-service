@@ -1,84 +1,40 @@
-const SendgridMail = require("../models/SendgridMail");
-const errors = require("../errors");
-const log = require("fruster-log");
-const config = require("../../config");
+import config from "../../config";
+import AbstractMailClient from "../clients/AbstractMailClient";
+import errors from "../errors";
+import Mail from "../models/Mail";
 
 class MailManager {
 
-	/**
-	 * @param {Object} sendGridApiClient which api client to use, mostly for being able to test without using a live verison of sendgrid
-	 */
-	constructor(sendGridApiClient) {
-		this._sendGridApiClient = sendGridApiClient;
+	private mailClient!: AbstractMailClient;
+
+	//It is not possible to inject mail client. It is making issues with unit tests.
+	constructor(mailClient: AbstractMailClient) {
+		this.mailClient = mailClient;
 	}
 
-	/**
-	 * @typedef {Object} Mail
-	 * @property {String} to
-	 * @property {String} from
-	 * @property {String} message
-	 * @property {String} subject
-	 * @property {Object} templateArgs
-	 * @property {String} templateId
-	 * @property {String} key
-	 */
+	async sendMail({ to, from, subject, templateId, templateArgs, message }: Mail) {
+		const isMultipleTo = Array.isArray(to);
 
-	/**
-	 * @param {Array<String>|String} toEmails
-	 * @param {Mail} mail
-	 */
-	async sendMail(toEmails, mail) {
-		let mails = [];
-
-		if (Array.isArray(toEmails)) {
-			if (!toEmails.length)
-				throw errors.badRequest("`to` array cannot empty");
-
-			mails = toEmails.map(email => new SendgridMail({ ...mail, to: [email] }));
-		} else {
-			mails = [new SendgridMail(mail)];
-		}
+		this.validate({ to, from, subject, templateId, message }, isMultipleTo);
 
 		if (config.catchAllEmail) {
-			mails = mails.map(mail => {
-				if (config.catchAllWhitelist) {
-					mail.to = mail.to.map(to => {
-						const toDomain = to.split("@")[1];
-						return config.catchAllWhitelist.includes(toDomain) ? to : config.catchAllEmail
-					});
-				} else {
-					mail.to = [config.catchAllEmail]
-				}
-
-				return mail;
-			});
+			if (isMultipleTo)
+				to = (to as string[]).map(this.setCatchMail);
+			else
+				to = this.setCatchMail(to as string);
 		}
 
-		if (!mails[0].isValid()) {
-			const validationErrors = mails[0].validate();
-
-			log.debug("Mail is invalid:", validationErrors);
-
-			throw errors.get("MISSING_FIELDS", validationErrors);
-		}
-
-		try {
-			for (const email of mails) {
-				await this._sendGridApiClient.send(email.toJSON());
-
-				log.debug("Successfully sent 1 mail \"", email.subject, "\"");
-			}
-		} catch (err) {
-			log.warn("Got failure from sendgrid", err);
-		}
+		await this.mailClient.sendMail({
+			to,
+			from: from || config.defaultFrom,
+			subject,
+			templateId,
+			templateArgs,
+			message
+		});
 	}
 
-	/**
-	 * @param {Array<String>|String} toEmails
-	 * @param {Mail} mail
-	 * @param {Number} numberOfMails
-	 */
-	async sendGroupedMail(toEmails, mail, numberOfMails) {
+	async sendGroupedMail(mail: Mail, numberOfMails: number) {
 		if (mail.subject)
 			mail.subject = mail.subject.split("{{n}}").join(numberOfMails.toString());
 
@@ -92,9 +48,36 @@ class MailManager {
 			mail.templateArgs.n = numberOfMails;
 		}
 
-		return await this.sendMail(toEmails, mail);
+		return await this.sendMail(mail);
+	}
+
+	private setCatchMail(email: string): string {
+		if (config.catchAllWhitelist) {
+			const toDomain = email.split("@")[1];
+			return config.catchAllWhitelist.includes(toDomain) ? email : config.catchAllEmail as string;
+		} else {
+			return config.catchAllEmail as string; //This will not undefined because it is already checked before
+		}
+	}
+
+	private validate({ to, subject, templateId, message }: Mail, isMultipleTo: boolean) {
+		if (isMultipleTo && !to.length)
+			throw errors.badRequest("`to` array cannot empty");
+
+		const invalidFields: string[] = [];
+
+		if (!templateId) {
+			if (!subject)
+				invalidFields.push("subject");
+
+			if (!message)
+				invalidFields.push("message");
+		}
+
+		if (invalidFields.length)
+			throw errors.get("MISSING_FIELDS", invalidFields);
 	}
 
 }
 
-module.exports = MailManager;
+export default MailManager;

@@ -1,26 +1,25 @@
-const MockSendGrid = require("./support/MockSendGrid");
-const specConstants = require("./support/spec-constants");
-const constants = require("../lib/constants");
-const SpecUtils = require("./support/SpecUtils");
-const testUtils = require("fruster-test-utils");
-const service = require("../fruster-mail-service");
-const config = require("../config");
-const bus = require("fruster-bus");
-const Db = require("mongodb").Db;
+import { MailDataRequired } from "@sendgrid/mail";
+import { Db } from "mongodb";
+import { testBus as bus } from "fruster-bus";
+import frusterTestUtils, { FrusterTestUtilsConnection } from "fruster-test-utils";
+
+import config from "../config";
+import { start } from "../fruster-mail-service";
+import constants from "../lib/constants";
+import { SERVICE_SUBJECT } from "../lib/handlers/ProcessGroupedMailTimeoutsHandler";
+import { SERVICE_SUBJECT as SEND_GROUPED_MAIL_SUBJECT } from "../lib/handlers/SendGroupedMailHandler";
+
+import MockSendGridClient from "./support/MockSendGridClient";
+import specConstants from "./support/spec-constants";
+import SpecUtils from "./support/SpecUtils";
 
 describe("ProcessGroupedMailTimeoutsHandler", () => {
 
-	/** @type {Db} */
-	let db;
+	let mockSendGrid: MockSendGridClient;
+	let db: Db;
 
-	/** @type {MockSendGrid} */
-	let mockSendGrid;
+	const email = "joel@frost.se";
 
-	/**@type {Object} */
-	let configBackup;
-
-	const reqId = "reqId";
-	const email = "someone@some-email.se";
 	const mailData = {
 		to: email,
 		from: "fruster@frost.se",
@@ -29,92 +28,92 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 		key: "user-service.HELLO_THERE"
 	}
 
-	testUtils.startBeforeEach({
+	const configBkp = { ...config };
+
+	afterEach(() => {
+		Object.keys(config).forEach(key => {
+			//@ts-ignore
+			config[key] = configBkp[key];
+		});
+	});
+
+	frusterTestUtils.startBeforeEach({
 		...specConstants.testUtilsOptions(),
-		service: async (connection) => {
-			db = connection.db;
-
+		service: async (connection: FrusterTestUtilsConnection) => {
 			config.groupedMailsEnabled = true;
+			config.groupedMailBatches = [
+				{ numberOfMessages: 1, timeout: 0 },
+				{ numberOfMessages: 5, timeout: 400 },
+				{ numberOfMessages: 10, timeout: 100 }
+			];
 
-			mockSendGrid = new MockSendGrid();
-
+			mockSendGrid = new MockSendGridClient();
 			mockSendGrid.mockSuccess(email);
 
-			return service.start(connection.natsUrl, specConstants.testUtilsOptions().mongoUrl, mockSendGrid);
+			db = connection.db!;
+
+			return start(connection.natsUrl!, specConstants.testUtilsOptions().mongoUrl, mockSendGrid);
 		}
 	});
 
-	afterEach(() => Object.keys(config).forEach(key => config[key] = configBackup[key]));
-
-	beforeEach(() => {
-		configBackup = { ...config };
-
-		config.groupedMailBatches = [
-			{ numberOfMessages: 1, timeout: 0 },
-			{ numberOfMessages: 5, timeout: 400 },
-			{ numberOfMessages: 10, timeout: 100 }
-		];
-	});
-
-	it("should send grouped mails", async (done) => {
-		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.subject).toContain("1", "1st mail should have grouped 1 mail");
-			expect(data.html).toContain("1", "1st mail should have grouped 1 mail");
+	it("should send grouped mails", async () => {
+		mockSendGrid.mockInterceptor(email, 0, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("1");
+			expect(html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 1, (data) => {
-			expect(data.subject).toContain("5", "2nd mail should have grouped 5 mails");
-			expect(data.html).toContain("5", "2nd mail should have grouped 5 mails");
+		mockSendGrid.mockInterceptor(email, 1, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("5");
+			expect(html).toContain("5");
 		});
 
-		mockSendGrid.mockInterceptor(email, 2, (data) => {
-			expect(data.subject).toContain("10", "3rd mail should have grouped 10 mails");
-			expect(data.html).toContain("10", "3rd mail should have grouped 10 mails");
+		mockSendGrid.mockInterceptor(email, 2, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("10");
+			expect(html).toContain("10");
 		});
 
-		mockSendGrid.mockInterceptor(email, 3, (data) => {
-			expect(data.subject).toContain("5", "4th mail should have grouped 5 mails");
-			expect(data.html).toContain("5", "4th mail should have grouped 5 mails");
+		mockSendGrid.mockInterceptor(email, 3, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("5");
+			expect(html).toContain("5");
 		});
 
-		mockSendGrid.mockInterceptor(email, 4, (data) => {
-			expect(data.subject).toContain("5", "5th mail should have grouped 5 mails");
-			expect(data.html).toContain("5", "5th mail should have grouped 5 mails");
+		mockSendGrid.mockInterceptor(email, 4, ({ subject, html }: MailDataRequired) => {
+			expect(subject).toContain("5");
+			expect(html).toContain("5");
 		});
 
-		mockSendGrid.mockInterceptor(email, 5, () => done.fail("Should not send 6 mails"));
+		mockSendGrid.mockInterceptor(email, 5, () => fail("Should not send 6 mails"));
 
 		let dbContents;
 
 		for (let i = 0; i < 6; i++)
 			await bus.request({
-				subject: constants.endpoints.service.SEND_GROUPED_MAIL,
+				subject: SEND_GROUPED_MAIL_SUBJECT,
 				skipOptionsRequest: true,
-				message: { reqId, data: mailData }
+				message: { data: mailData }
 			});
 
 		for (let i = 0; i < 15; i++)
 			await bus.request({
-				subject: constants.endpoints.service.SEND_GROUPED_MAIL,
+				subject: SEND_GROUPED_MAIL_SUBJECT,
 				skipOptionsRequest: true,
-				message: { reqId, data: mailData }
+				message: { data: mailData }
 			});
 
 		await SpecUtils.delay(110);
 
 		/** Should push 5 mails since the last batch's timeout has been reached */
 		await bus.request({
-			subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-			skipOptionsRequest: true,
-			message: { reqId }
+			subject: SERVICE_SUBJECT,
+			skipOptionsRequest: true
 		});
 
 		/** Should push 5 mails since the batch level should have been decreased */
 		for (let i = 0; i < 5; i++)
 			await bus.request({
-				subject: constants.endpoints.service.SEND_GROUPED_MAIL,
+				subject: SEND_GROUPED_MAIL_SUBJECT,
 				skipOptionsRequest: true,
-				message: { reqId, data: mailData }
+				message: { data: mailData }
 			});
 
 
@@ -122,42 +121,35 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 
 		expect(dbContents[0].batchLevel).toBe(2);
 
-		expect(mockSendGrid.invocations[email]).toBe(5, "1st mail should have sent 5 grouped mails");
-
-		done();
+		expect(mockSendGrid.invocations[email]).toBe(5);
 	});
 
-	it("should remove mail batch database entry if batch is timed out and batch level is 0", async (done) => {
-		mockSendGrid.mockInterceptor(email, 0, (data) => {
-			expect(data.subject).toContain("1", "1st mail should have grouped 1 mail");
-			expect(data.html).toContain("1", "1st mail should have grouped 1 mail");
+	it("should remove mail batch database entry if batch is timed out and batch level is 0", async () => {
+		mockSendGrid.mockInterceptor(email, 0, (data: MailDataRequired) => {
+			expect(data.subject).toContain("1");
+			expect(data.html).toContain("1");
 		});
 
-		mockSendGrid.mockInterceptor(email, 1, () => done.fail("Should not send 2 mails"));
+		mockSendGrid.mockInterceptor(email, 1, () => fail("Should not send 2 mails"));
 
 		await bus.request({
-			subject: constants.endpoints.service.SEND_GROUPED_MAIL,
+			subject: SEND_GROUPED_MAIL_SUBJECT,
 			skipOptionsRequest: true,
-			message: { reqId, data: mailData }
+			message: { data: mailData }
 		});
 
 		await SpecUtils.delay(500);
 
 		await bus.request({
-			subject: constants.endpoints.service.PROCESS_GROUPED_MAIL_TIMEOUTS,
-			skipOptionsRequest: true,
-			message: { reqId }
+			subject: SERVICE_SUBJECT,
+			skipOptionsRequest: true
 		});
 
 		const dbContents = await db.collection(constants.collections.GROUPED_MAIL_BATCHES).find().toArray();
 
 		expect(dbContents.length).toBe(0);
 
-		expect(mockSendGrid.invocations[email]).toBe(1, "should have sent 1 grouped mails");
-
-		done();
+		expect(mockSendGrid.invocations[email]).toBe(1);
 	});
-
-
 
 });

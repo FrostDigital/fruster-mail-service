@@ -1,61 +1,112 @@
-const GroupedMailBatchRepo = require("../repos/GroupedMailBatchRepo");
-const GroupedMailRepo = require("../repos/GroupedMailRepo");
-const BatchLevelUtils = require("../utils/BatchLevelUtils");
-const FrusterRequest = require("fruster-bus").FrusterRequest;
-const MailManager = require("../managers/MailManager");
-const ArrayUtils = require("../utils/ArrayUtils");
-const LogUtils = require("../utils/LogUtils");
-const config = require("../../config");
-const log = require("fruster-log");
+import ms from "ms";
+import { FrusterRequest, FrusterResponse } from "fruster-bus";
+import { subscribe, injectable, inject } from "fruster-decorators";
+import log from "fruster-log";
+
+import config from "../../config";
+import LogUtils from "../LogUtils";
+import BatchLevelUtils from "../BatchLevelUtils";
+import SendGroupedMailRequest from "../schemas/ISendGroupedMailRequestSchemas";
+import MailManager from "../managers/MailManager";
+import GroupedMailRepo from "../repos/GroupedMailRepo";
+import GroupedMailBatchRepo from "../repos/GroupedMailBatchRepo";
+import GroupedMailBatch from "../models/GroupedMailBatch";
+import { GroupedMail } from "../models/Mail";
+
+export const SERVICE_SUBJECT = "mail-service.send-grouped-mail";
 
 const logPrefix = "[SendGroupedMailHandler]";
 
+/**
+ * Handler to send grouped mail.
+ */
+@injectable()
 class SendGroupedMailHandler {
 
-	/**
-	 * @param {GroupedMailBatchRepo} groupedMailBatchRepo
-	 * @param {GroupedMailRepo} groupedMailRepo
-	 * @param {MailManager} mailManager
-	 */
-	constructor(groupedMailBatchRepo, groupedMailRepo, mailManager) {
-		this._groupedMailBatchRepo = groupedMailBatchRepo;
-		this._groupedMailRepo = groupedMailRepo;
-		this._mailManager = mailManager;
+	private mailManager!: MailManager;
+
+	@inject()
+	private groupedMailRepo!: GroupedMailRepo;
+
+	@inject()
+	private groupedMailBatchRepo!: GroupedMailBatchRepo;
+
+	//MailClient cannot inject because mock mail client properties are not reset after each unit test
+	constructor(mailManager: MailManager) {
+		this.mailManager = mailManager;
 	}
 
 	/**
-	 * @param {FrusterRequest} param0
+	 * Handle service request.
 	 */
-	async handle({ data: { from, message, subject, templateArgs, templateId, to, key } }) {
-		if (!Array.isArray(to))
-			to = [to];
+	@subscribe({
+		subject: SERVICE_SUBJECT,
+		requestSchema: "SendGroupedMailRequest",
+		docs: {
+			description: `Sends a mail that can be grouped.
+			mails sent using this endpoint will be sent in groups, based off the \`GROUPED_MAIL_BATCHES\` config.
+			mails are grouped by \`email\` (taken from the \`to\` array) and \`key\`.
 
-		to = ArrayUtils.removeDuplicates(to);
+			When used with multiple \`email\`s in the \`to\` array, each \`email\` is grouped individually.
 
-		const batches = await this._groupedMailBatchRepo.getByQuery({ email: { $in: to }, key });
+			The grouping of mails happens in batches.
+			Each batch “level” has a \`numberOfMessages\` (Number of messages before next batch level is reached)
+			and \`timeout\` (timeout before level is decreased) defined.
+			Every time a batch level's \`numberOfMessages\` is reached, the pending mails are sent out as one mail
+			and the batch level is increased. Each new batch level will (most commonly) increase \`numberOfMessages\`
+			and the \`timeout\`. If the number of messages is not fulfilled before the timeout is reached,
+			the mail is sent with all pending grouped mails; then the batch level is decreased.
 
-		for (const email of to)
-			await this._processGroupedMailForUser(email, { from, message, subject, templateArgs, templateId, key }, batches.find(b => b.email === email));
+			When a grouped mail is sent out; any \`{{n}}\` in message and/or title will be replaced
+			by the number of pending grouped mails at that point. When using templates,
+			\`n\` will be added to \`templateArgs\` and can then be used by the template.
+			Example: When 56 grouped mails with the key \`message-service.NEW_MESSAGE\` have been sent w/
+			the message \`You have {{n}}}} new messages!\` it becomes:
+
+			\t You have 56 new messages!
+
+			Current configuration:
+
+			${config.groupedMailBatches?.map((s, i) => `\t Batch level ${i + 1} => numberOfMessages: ${s.numberOfMessages}, timeout: ${ms(s.timeout)}`).join("\n\n")}
+
+			With this configuration after ${config.groupedMailBatches?.reduce((total: number, { numberOfMessages }) => total += numberOfMessages, 0)}
+			mails being sent, the email would have received ${config.groupedMailBatches?.length} mails;
+			granted none of the timeouts have been reached.`,
+			errors: {
+				INTERNAL_SERVER_ERROR: "Something unexpected happened",
+				BAD_REQUEST: "`to` array cannot empty",
+				MISSING_FIELDS: "One or many required fields are missing"
+			}
+		}
+	})
+	async handle({
+		data: { to, key, ...mail }
+	}: FrusterRequest<SendGroupedMailRequest>): Promise<FrusterResponse<void>> {
+		if (Array.isArray(to)) {
+			const batches = await this.groupedMailBatchRepo.getByQuery({
+				email: { $in: Array.from(new Set(to)) },
+				key
+			});
+
+			const batchByEmail = new Map<string, GroupedMailBatch>();
+			batches.forEach(batch => batchByEmail.set(batch.email, batch));
+
+			for (const toEmail of to)
+				await this.processGroupedMailForUser(toEmail, key, mail, batchByEmail.get(toEmail));
+		} else {
+			const batch = await this.groupedMailBatchRepo.getOneByQuery({ email: to, key });
+			await this.processGroupedMailForUser(to, key, mail, batch!);
+		}
 
 		return { status: 200 };
 	}
 
-	/**
-	 * @param {String} email
-	 * @param {Object} mail
-	 * @param {String} mail.from
-	 * @param {String} mail.message
-	 * @param {String} mail.subject
-	 * @param {String} mail.templateArgs
-	 * @param {String} mail.templateId
-	 * @param {String} mail.key
-	 * @param {Object} currentBatch
-	 * @param {String} currentBatch.email
-	 * @param {String} currentBatch.key
-	 * @param {Number} currentBatch.batchLevel
-	 * @param {Date} currentBatch.created
-	 */
-	async _processGroupedMailForUser(email, mail, currentBatch) {
+	private async processGroupedMailForUser(
+		email: string,
+		key: string,
+		mail: Omit<GroupedMail, "email" | "key">,
+		currentBatch?: GroupedMailBatch
+	) {
 		try {
 			if (currentBatch) {
 				log.debug(logPrefix,
@@ -64,7 +115,7 @@ class SendGroupedMailHandler {
 
 				const { batchLevel } = currentBatch;
 
-				const currentPendingMails = await this._groupedMailRepo.getByQuery({ email, key: mail.key });
+				const currentPendingMails = await this.groupedMailRepo.getByQuery({ email, key });
 
 				log.debug(logPrefix,
 					"Found",
@@ -74,44 +125,46 @@ class SendGroupedMailHandler {
 
 				const currentBatchSettings = BatchLevelUtils.getBatchLevelSettingsForLevel(batchLevel);
 
-				const enoughNotificationsToTriggerPushForCurrentBatchLevel = currentPendingMails.length + 1 >= currentBatchSettings.numberOfMessages;
+				if (currentBatchSettings) {
+					const enoughNotificationsToTriggerPushForCurrentBatchLevel = currentPendingMails.length + 1 >= currentBatchSettings.numberOfMessages;
 
-				if (enoughNotificationsToTriggerPushForCurrentBatchLevel) {
-					log.debug(logPrefix,
-						LogUtils.getGroupedMailUniqueIdentifierLog(email, currentBatch.key),
-						"( with batch level",
-						batchLevel,
-						") has enough pending mail to trigger sending a mail.",
-						currentPendingMails.length + 1,
-						"/",
-						currentBatchSettings.numberOfMessages);
+					if (enoughNotificationsToTriggerPushForCurrentBatchLevel) {
+						log.debug(logPrefix,
+							LogUtils.getGroupedMailUniqueIdentifierLog(email, currentBatch.key),
+							"( with batch level",
+							batchLevel,
+							") has enough pending mail to trigger sending a mail.",
+							currentPendingMails.length + 1,
+							"/",
+							currentBatchSettings.numberOfMessages);
 
-					await this._deleteBatchMails(email, mail.key);
+						await this.deleteBatchMails(email, key);
 
-					await this._updateBatchEntry(email, mail.key, batchLevel + 1);
+						await this.updateBatchEntry(email, key, batchLevel + 1);
 
-					return await this._mailManager.sendGroupedMail(email, { ...mail, to: email }, currentPendingMails.length + 1);
-				} else {
-					log.debug(logPrefix,
-						LogUtils.getGroupedMailUniqueIdentifierLog(email, currentBatch.key),
-						"( with batch level",
-						batchLevel,
-						") did not have enough pending mail to trigger sendin a mail. Found (including the one currently sent)",
-						currentPendingMails.length + 1,
-						"and it needs",
-						currentBatchSettings.numberOfMessages,
-						"to send mail");
+						await this.mailManager.sendGroupedMail({ ...mail, to: email }, currentPendingMails.length + 1);
+					} else {
+						log.debug(logPrefix,
+							LogUtils.getGroupedMailUniqueIdentifierLog(email, currentBatch.key),
+							"( with batch level",
+							batchLevel,
+							") did not have enough pending mail to trigger sending a mail. Found (including the one currently sent)",
+							currentPendingMails.length + 1,
+							"and it needs",
+							currentBatchSettings.numberOfMessages,
+							"to send mail");
 
-					await this._groupedMailRepo.add({ ...mail, email });
+						await this.groupedMailRepo.add({ ...mail, email, key });
+					}
 				}
 			} else {
 				log.debug(logPrefix,
 					"Adding new grouped mail batch entry for",
-					LogUtils.getGroupedMailUniqueIdentifierLog(email, mail.key));
+					LogUtils.getGroupedMailUniqueIdentifierLog(email, key));
 
-				await this._groupedMailBatchRepo.put(email, mail.key, 1, BatchLevelUtils.getTimeoutDateForBatchLevel(1));
+				await this.groupedMailBatchRepo.put(email, key, 1, BatchLevelUtils.getTimeoutDateForBatchLevel(1));
 
-				await this._mailManager.sendGroupedMail(email, { ...mail, to: email }, 1);
+				await this.mailManager.sendGroupedMail({ ...mail, to: email }, 1);
 			}
 		} catch (err) {
 			log.error(err);
@@ -120,12 +173,8 @@ class SendGroupedMailHandler {
 
 	/**
 	 * Updates batch entry w/ new level, created date and timeout date
-	 *
-	 * @param {String} email
-	 * @param {String} key
-	 * @param {Number} batchLevel
 	 */
-	async _updateBatchEntry(email, key, batchLevel) {
+	async updateBatchEntry(email: string, key: string, batchLevel: number) {
 		const originalBatchLevel = batchLevel;
 
 		/** Safety net  */
@@ -133,26 +182,32 @@ class SendGroupedMailHandler {
 			batchLevel = 0;
 
 		/** Safety net  */
-		if (batchLevel >= config.groupedMailBatches.length)
+		if (config.groupedMailBatches && batchLevel >= config.groupedMailBatches.length)
 			batchLevel = config.groupedMailBatches.length - 1;
 
-		log.debug(logPrefix, "Updates", LogUtils.getGroupedMailUniqueIdentifierLog(email, key), "with new batch level", batchLevel, "was", originalBatchLevel);
+		log.debug(
+			logPrefix,
+			"Updates",
+			LogUtils.getGroupedMailUniqueIdentifierLog(email, key),
+			"with new batch level", batchLevel, "was", originalBatchLevel
+		);
 
-		await this._groupedMailBatchRepo.put(email, key, batchLevel, BatchLevelUtils.getTimeoutDateForBatchLevel(batchLevel));
+		await this.groupedMailBatchRepo.put(
+			email,
+			key,
+			batchLevel,
+			BatchLevelUtils.getTimeoutDateForBatchLevel(batchLevel)
+		);
 	}
 
 	/**
 	 * Removes mails in batch being mailed to user
-	 *
-	 * @param {String} email
-	 * @param {String} key
 	 */
-	async _deleteBatchMails(email, key) {
+	async deleteBatchMails(email: string, key: string) {
 		log.debug(logPrefix, "Deletes mails in batch", LogUtils.getGroupedMailUniqueIdentifierLog(email, key));
 
-		await this._groupedMailRepo.deleteByQuery({ email, key });
+		await this.groupedMailRepo.deleteByQuery({ email, key });
 	}
-
 }
 
-module.exports = SendGroupedMailHandler;
+export default SendGroupedMailHandler;

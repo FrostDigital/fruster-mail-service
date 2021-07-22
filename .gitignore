@@ -1,5 +1,8 @@
-node_modules
-npm-debug.log
+db
+log
+.DS_Store
+
+# Fruster health file
 .health
 
 # Logs
@@ -61,11 +64,8 @@ typings/
 # dotenv environment variables file
 .env
 
-.health
+# vs code
+.vscode
 
-.DStore
-
-# Temp folder for image upload until s3 bucket
-
-images
-videos
+# Intellij
+.idea

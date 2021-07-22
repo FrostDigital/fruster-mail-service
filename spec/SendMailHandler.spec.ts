@@ -1,25 +1,29 @@
-const uuid = require("uuid");
-const bus = require("fruster-bus").testBus;
-const testUtils = require("fruster-test-utils");
-const constants = require("../lib/constants");
-const errors = require("../lib/errors");
-const service = require("../fruster-mail-service");
-const MockSendGrid = require("./support/MockSendGrid");
-const specConstants = require("./support/spec-constants");
-const config = require("../config");
+import { MailDataRequired } from "@sendgrid/mail";
+import { testBus as bus } from "fruster-bus";
+import frusterTestUtils, { FrusterTestUtilsConnection } from "fruster-test-utils";
+
+import config from "../config";
+import { start } from "../fruster-mail-service";
+import errors from "../lib/errors";
+import { SERVICE_SUBJECT, DEPRECATED_SUBJECT } from "../lib/handlers/SendMailHandler";
+import SendMailRequest from "../lib/schemas/ISendMailRequestSchemas";
+
+import MockSendGridClient from "./support/MockSendGridClient";
+import specConstants from "./support/spec-constants";
 
 describe("SendMailHandler", () => {
 
-	/** @type {MockSendGrid} */
-	let mockSendGrid;
+	let mockSendGrid: MockSendGridClient;
 
 	const email = "joel@frost.se";
+	const catchAllEmail = "henrik.lundqvist@nhl.com";
+	const toWhitelistedEmail = "michael.jordan@nba.com";
 
 	const legacyTemplateId = "fc27a67e-b59b-4dc1-bfaa-ee3d9804e1a5";
 	const transactionalTemplateId = "d-c3bed683b80541fc9397489fe7223c37";
 
 	const jsonToSendGridNormalMail = {
-		to: [email],
+		to: email,
 		subject: "Hello world from automated test 2.0",
 		from: "fruster@frost.se",
 		text: "This is a message from me in the future: This is not a good idea. IT IS FIXED!",
@@ -27,7 +31,7 @@ describe("SendMailHandler", () => {
 	};
 
 	const jsonToSendGridLegacyTemplateMail = {
-		to: [email],
+		to: email,
 		subject: "Hello world from template test",
 		substitutions: { name: "Joel" },
 		from: "fruster@frost.se",
@@ -35,22 +39,28 @@ describe("SendMailHandler", () => {
 	};
 
 	const jsonToSendGridTransactionalTemplateMail = {
-		to: [email],
+		to: email,
 		subject: "Hello world from template test",
-		dynamic_template_data: { name: "Joel", subject: "Hello world from template test" },
+		dynamicTemplateData: { name: "Joel" },
 		from: "fruster@frost.se",
 		templateId: transactionalTemplateId
 	};
 
-	testUtils.startBeforeEach({
+	const configBkp = { ...config };
+
+	afterEach(() => {
+		Object.keys(config).forEach(key => {
+			//@ts-ignore
+			config[key] = configBkp[key];
+		});
+	});
+
+	frusterTestUtils.startBeforeEach({
 		...specConstants.testUtilsOptions(),
-		service: async (connection) => {
+		service: async ({ natsUrl }: FrusterTestUtilsConnection) => {
+			mockSendGrid = new MockSendGridClient();
 
-			mockSendGrid = new MockSendGrid();
-
-			mockSendGrid.mockSuccess(email);
-
-			return service.start(connection.natsUrl, specConstants.testUtilsOptions().mongoUrl, mockSendGrid);
+			return start(natsUrl!, specConstants.testUtilsOptions().mongoUrl, mockSendGrid);
 		}
 	});
 
@@ -62,14 +72,15 @@ describe("SendMailHandler", () => {
 			message: "This is a message from me in the future: This is not a good idea. IT IS FIXED!"
 		};
 
-		mockSendGrid.mockInterceptorAll(email, (data) => expect(data).toEqual(jsonToSendGridNormalMail, "should be equal to sendgrid json structure"));
+		mockSendGrid.mockSuccess(email);
+		mockSendGrid.mockInterceptorAll(email, (data: MailDataRequired) => expect(data).toEqual(jsonToSendGridNormalMail));
 
-		const { status } = await bus.request({
-			subject: constants.endpoints.service.SEND_MAIL,
-			message: { data: mail, reqId: uuid.v4() }
+		const { status } = await bus.request<SendMailRequest, void>({
+			subject: SERVICE_SUBJECT,
+			message: { data: mail }
 		});
 
-		expect(mockSendGrid.invocations[email]).toBe(1, "should have sent one mail");
+		expect(mockSendGrid.invocations[email]).toBe(1);
 
 		expect(status).toBe(200);
 	});
@@ -83,14 +94,15 @@ describe("SendMailHandler", () => {
 			templateArgs: { name: "Joel" }
 		};
 
-		mockSendGrid.mockInterceptorAll(email, (data) => expect(data).toEqual(jsonToSendGridLegacyTemplateMail, "should be equal to sendgrid json structure"));
+		mockSendGrid.mockSuccess(email);
+		mockSendGrid.mockInterceptorAll(email, (data: MailDataRequired) => expect(data).toEqual(jsonToSendGridLegacyTemplateMail));
 
-		const { status } = await bus.request({
-			subject: "mail-service.send",
-			message: { data: mail, reqId: uuid.v4() }
+		const { status } = await bus.request<SendMailRequest, void>({
+			subject: DEPRECATED_SUBJECT,
+			message: { data: mail }
 		});
 
-		expect(mockSendGrid.invocations[email]).toBe(1, "should have sent one mail");
+		expect(mockSendGrid.invocations[email]).toBe(1);
 
 		expect(status).toBe(200);
 	});
@@ -104,19 +116,20 @@ describe("SendMailHandler", () => {
 			templateArgs: { name: "Joel" }
 		};
 
-		mockSendGrid.mockInterceptorAll(email, (data) => expect(data).toEqual(jsonToSendGridTransactionalTemplateMail, "should be equal to sendgrid json structure"));
+		mockSendGrid.mockSuccess(email);
+		mockSendGrid.mockInterceptorAll(email, (data: MailDataRequired) => expect(data).toEqual(jsonToSendGridTransactionalTemplateMail));
 
-		const { status } = await bus.request({
-			subject: "mail-service.send",
-			message: { data: mail, reqId: uuid.v4() }
+		const { status } = await bus.request<SendMailRequest, void>({
+			subject: DEPRECATED_SUBJECT,
+			message: { data: mail }
 		});
 
-		expect(mockSendGrid.invocations[email]).toBe(1, "should have sent one mail");
+		expect(mockSendGrid.invocations[email]).toBe(1);
 
 		expect(status).toBe(200);
 	});
 
-	it("should throw error if to emails is empty", async done => {
+	it("should throw error if to emails is empty", async () => {
 		const mail = {
 			to: [],
 			from: "fruster@frost.se",
@@ -127,20 +140,19 @@ describe("SendMailHandler", () => {
 
 		try {
 			await bus.request({
-				subject: "mail-service.send",
-				message: { data: mail, reqId: uuid.v4() }
+				subject: DEPRECATED_SUBJECT,
+				message: { data: mail }
 			});
 
-			done.fail();
+			fail();
 		} catch ({ status, error }) {
-			expect(status).toBe(400, "err.status");
-			expect(error.code).toBe(errors.badRequest().error.code, "err.code");
+			expect(status).toBe(400);
+			expect(error.code).toBe(errors.badRequest().error.code);
 			expect(error.detail).toBe("`to` array cannot empty");
-			done();
 		}
 	});
 
-	it("should throw error if mails are invalid", async done => {
+	it("should throw error if mails are invalid", async () => {
 		const mail = {
 			to: [email],
 			from: "fruster@frost.se",
@@ -149,47 +161,43 @@ describe("SendMailHandler", () => {
 
 		try {
 			await bus.request({
-				subject: "mail-service.send",
-				message: { data: mail, reqId: uuid.v4() }
+				subject: DEPRECATED_SUBJECT,
+				message: { data: mail }
 			});
 
-			done.fail();
+			fail();
 		} catch ({ status, error }) {
-			expect(status).toBe(400, "err.status");
-			expect(error.code).toBe("MISSING_FIELDS", "err.code");
-			done();
+			expect(status).toBe(400);
+			expect(error.code).toBe("MISSING_FIELDS");
 		}
 	});
 
 	it("should send mail to catch all email", async () => {
 		// Set catch all in config before test
-		config.catchAllEmail = "henrik.lundqvist@nhl.com";
+		config.catchAllEmail = catchAllEmail;
 
 		const mail = {
-			to: email,
+			to: [email, email],
 			from: "fruster@frost.se",
 			subject: "Hello world from template test",
 			templateId: transactionalTemplateId
 		};
 
-		const { status } = await bus.request({
-			subject: constants.endpoints.service.SEND_MAIL,
+		mockSendGrid.mockSuccess(catchAllEmail);
+
+		const { status } = await bus.request<SendMailRequest, void>({
+			subject: SERVICE_SUBJECT,
 			message: { data: mail }
 		});
 
-		expect(mockSendGrid.invocations[config.catchAllEmail]).toBe(1, "should have sent one mail to catch all email");
+		expect(mockSendGrid.invocations[config.catchAllEmail!]).toBe(1);
 		expect(status).toBe(200);
-
-		// Clean up config after test
-		delete config.catchAllEmail;
 	});
 
 	it("should send mail to whitelisted domain even if catch all email is set", async () => {
 		// Set catch all in config before test
-		config.catchAllEmail = "henrik.lundqvist@nhl.com";
+		config.catchAllEmail = catchAllEmail;
 		config.catchAllWhitelist = ["nfl.com", "nba.com"];
-
-		const toWhitelistedEmail = "michael.jordan@nba.com";
 
 		const mail1 = {
 			to: toWhitelistedEmail,
@@ -205,22 +213,20 @@ describe("SendMailHandler", () => {
 			templateId: transactionalTemplateId
 		};
 
+		mockSendGrid.mockSuccess(catchAllEmail);
+		mockSendGrid.mockSuccess(toWhitelistedEmail);
+
 		await bus.request({
-			subject: constants.endpoints.service.SEND_MAIL,
+			subject: SERVICE_SUBJECT,
 			message: { data: mail1 }
 		});
 
 		await bus.request({
-			subject: constants.endpoints.service.SEND_MAIL,
+			subject: SERVICE_SUBJECT,
 			message: { data: mail2 }
 		});
 
-		expect(mockSendGrid.invocations[toWhitelistedEmail]).toBe(1, "should have sent one mail to whitelisted email");
-		expect(mockSendGrid.invocations[config.catchAllEmail]).toBe(1, "should have sent one mail to catch all email");
-
-		// Clean up config after test
-		delete config.catchAllEmail;
-		delete config.catchAllWhitelist;
+		expect(mockSendGrid.invocations[toWhitelistedEmail]).toBe(1);
+		expect(mockSendGrid.invocations[config.catchAllEmail]).toBe(1);
 	});
-
 });

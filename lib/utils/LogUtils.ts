@@ -1,13 +1,9 @@
 class LogUtils {
 
-	/**
-	 * @param {String} email
-	 * @param {String} key
-	 */
-	static getGroupedMailUniqueIdentifierLog(email, key) {
+	static getGroupedMailUniqueIdentifierLog(email: string, key: string) {
 		return `{ email: ${email}, key: ${key} }`;
 	}
 
 }
 
-module.exports = LogUtils;
+export default LogUtils;
