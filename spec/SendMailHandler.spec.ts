@@ -35,7 +35,8 @@ describe("SendMailHandler", () => {
 		subject: "Hello world from template test",
 		substitutions: { name: "Joel" },
 		from: "fruster@frost.se",
-		templateId: legacyTemplateId
+		templateId: legacyTemplateId,
+		substitutionWrappers: config.substitutionCharacter
 	};
 
 	const jsonToSendGridTransactionalTemplateMail = {

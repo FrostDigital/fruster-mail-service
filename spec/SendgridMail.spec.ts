@@ -1,6 +1,8 @@
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
-import SendGridMailClient from "../lib/clients/SendGridMailClient";
+
+import config from "../config";
 import errors from "../lib/errors";
+import SendGridMailClient from "../lib/clients/SendGridMailClient";
 
 describe("SendgridMail", () => {
 	const sendGridMailClient = new SendGridMailClient();
@@ -67,7 +69,7 @@ describe("SendgridMail", () => {
 			}
 		};
 
-		const { to, subject, from, html, substitutions } = sendGridMailClient.getMailData(mail);
+		const { to, subject, from, substitutions, substitutionWrappers } = sendGridMailClient.getMailData(mail);
 
 		expect((to as EmailData[])[0]).toBe("joel@frost.se");
 		expect((to as EmailData[])[1]).toBe("bob@frost.se");
@@ -75,6 +77,7 @@ describe("SendgridMail", () => {
 		//@ts-ignore but substitutions need only simple object.
 		expect(substitutions).toEqual(mail.templateArgs, "substitutions");
 		expect(from).toBe("god@frost.se");
+		expect(substitutionWrappers).toEqual(config.substitutionCharacter);
 	});
 
 	it("should create mail using transactional template", () => {
