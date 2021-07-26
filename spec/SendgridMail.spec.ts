@@ -37,6 +37,21 @@ describe("SendgridMail", () => {
 		expect(from).toBe("god@frost.se");
 	});
 
+	it("should fail to validate mail", () => {
+		try {
+			sendGridMailClient.validate({
+				from: "god@frost.se",
+				message: "God Bless You"
+			});
+
+			fail();
+		} catch ({ status, error }) {
+			expect(status).toBe(400);
+			expect(error.code).toBe("MISSING_FIELDS");
+			expect(error.detail).toContain("subject");
+		}
+	});
+
 	it("should create mail with multiple recipients", () => {
 		const mail = {
 			to: ["joel@frost.se", "bob@frost.se"],

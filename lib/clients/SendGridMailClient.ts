@@ -3,7 +3,7 @@ import log from "fruster-log";
 
 import config from "../../config";
 import errors from "../errors";
-import { SendMailParams } from "../models/Mail";
+import Mail, { SendMailParams } from "../models/Mail";
 import AbstractMailClient from "./AbstractMailClient";
 
 class SendGridMailClient extends AbstractMailClient {
@@ -58,6 +58,21 @@ class SendGridMailClient extends AbstractMailClient {
 		} else {
 			throw errors.badRequest("The request has not message or templateId");
 		}
+	}
+
+	validate({ subject, templateId, message }: Partial<Mail>) {
+		const invalidFields: string[] = [];
+
+		if (!templateId) {
+			if (!subject)
+				invalidFields.push("subject");
+
+			if (!message)
+				invalidFields.push("message");
+		}
+
+		if (invalidFields.length)
+			throw errors.get("MISSING_FIELDS", invalidFields);
 	}
 }
 

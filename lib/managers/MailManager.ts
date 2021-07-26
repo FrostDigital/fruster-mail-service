@@ -15,7 +15,10 @@ class MailManager {
 	async sendMail({ to, from, subject, templateId, templateArgs, message }: Mail) {
 		const isMultipleTo = Array.isArray(to);
 
-		this.validate({ to, from, subject, templateId, message }, isMultipleTo);
+		if (isMultipleTo && !to.length)
+			throw errors.badRequest("`to` array cannot empty");
+
+		this.mailClient.validate({ to, from, subject, templateId, message });
 
 		if (config.catchAllEmail) {
 			if (isMultipleTo)
@@ -58,24 +61,6 @@ class MailManager {
 		} else {
 			return config.catchAllEmail as string; //This will not undefined because it is already checked before
 		}
-	}
-
-	private validate({ to, subject, templateId, message }: Mail, isMultipleTo: boolean) {
-		if (isMultipleTo && !to.length)
-			throw errors.badRequest("`to` array cannot empty");
-
-		const invalidFields: string[] = [];
-
-		if (!templateId) {
-			if (!subject)
-				invalidFields.push("subject");
-
-			if (!message)
-				invalidFields.push("message");
-		}
-
-		if (invalidFields.length)
-			throw errors.get("MISSING_FIELDS", invalidFields);
 	}
 
 }

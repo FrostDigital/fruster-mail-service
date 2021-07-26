@@ -1,4 +1,4 @@
-import { SendMailParams } from "../models/Mail";
+import Mail, { SendMailParams } from "../models/Mail";
 
 abstract class AbstractMailClient {
 
@@ -14,6 +14,12 @@ abstract class AbstractMailClient {
 	 * This is public because mock client need to use this method for testing
 	 */
 	abstract getMailData({ to, from, subject, templateId, templateArgs, message }: SendMailParams): any
+
+	/**
+	 * Request parameters validations are differ from mail client
+	 * This will throws different errors depend on the mail client
+	 */
+	abstract validate({ }: Partial<Mail>): any
 }
 
 export default AbstractMailClient;
