@@ -84,6 +84,8 @@ describe("SendGroupedMailHandler", () => {
 	});
 
 	it("should send grouped mails to multiple emails", async () => {
+		mockSendGrid.mockSuccess(email2);
+
 		mockSendGrid.mockInterceptor(email, 0, ({ subject, html }: MailDataRequired) => {
 			expect(subject).toContain("1");
 			expect(html).toContain("1");

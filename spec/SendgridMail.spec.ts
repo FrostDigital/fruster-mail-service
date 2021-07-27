@@ -136,4 +136,42 @@ describe("SendgridMail", () => {
 		}
 	});
 
+	it("should not fail if not configure properly", async () => {
+		const mail = {
+			to: "joel@frost.se",
+			from: "god@frost.se",
+			templateId: "fc69d0b7-b10e-4e05-96f5-6a5ed4d1f01c",
+			templateArgs: {
+				foo: "bar",
+				ram: {
+					jam: 1337,
+					bon: { ravioli: { inside: "Object" } }
+				}
+			}
+		};
+
+		await sendGridMailClient.sendMail(mail);
+	});
+
+	it("should not fail if mail is not sending", async () => {
+		const mail = {
+			to: ["joel@frost.se", "joel+1@frost.se"],
+			from: "god@frost.se",
+			templateId: "fc69d0b7-b10e-4e05-96f5-6a5ed4d1f01c",
+			templateArgs: {
+				foo: "bar",
+				ram: {
+					jam: 1337,
+					bon: { ravioli: { inside: "Object" } }
+				}
+			}
+		};
+
+		config.sendGridApiKey = "testUser";
+
+		await sendGridMailClient.sendMail(mail);
+
+		config.sendGridApiKey = "";
+	});
+
 });
