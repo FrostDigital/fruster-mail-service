@@ -61,7 +61,8 @@ class IdRelayMailClient extends AbstractMailClient {
 		try {
 			await got.post(`https://api.idrelay.com/v5/api/v6/activities/${activityId}/recipient`, {
 				json: mailData,
-				headers: { "Authorization": "Basic " + this.getAuthHash() }
+				headers: { "Authorization": "Basic " + this.getAuthHash() },
+				retry: 0
 			});
 		} catch ({ message }) {
 			throw errors.internalServerError(message);
