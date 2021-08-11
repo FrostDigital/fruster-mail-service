@@ -1,11 +1,9 @@
 import bus from "fruster-bus";
 import { FrusterTestUtilsConnection } from "fruster-test-utils";
-import TypeScriptSchemaResolver, { setSchemaResolverFilePattern } from "fruster-bus-ts-schema-resolver";
+import TypeScriptSchemaResolver from "fruster-bus-ts-schema-resolver";
 
 import constants from "../../lib/constants";
 import { start } from "../../fruster-mail-service";
-
-setSchemaResolverFilePattern("I.*.ts");
 
 export default {
 	testUtilsOptions: (afterStart?: (connection: FrusterTestUtilsConnection) => Promise<void>) => {

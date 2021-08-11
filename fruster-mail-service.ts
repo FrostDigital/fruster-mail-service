@@ -2,7 +2,7 @@ import { connect, Db } from "mongodb";
 import { v4 } from "uuid";
 import bus from "fruster-bus";
 import log from "fruster-log";
-import TypeScriptSchemaResolver, { setSchemaResolverFilePattern } from "fruster-bus-ts-schema-resolver";
+import TypeScriptSchemaResolver from "fruster-bus-ts-schema-resolver";
 import { injections } from "fruster-decorators";
 
 import config from "./config";
@@ -17,11 +17,6 @@ import SendGroupedMailHandler from "./lib/handlers/SendGroupedMailHandler";
 import ProcessGroupedMailTimeoutsHandler, {
 	SERVICE_SUBJECT as PROCESS_GROUPED_MAIL_TIMEOUTS_SUBJECT
 } from "./lib/handlers/ProcessGroupedMailTimeoutsHandler";
-
-
-// Parse files in schema dir as typescript schemas if they match this pattern
-// Example: IFoo.ts
-setSchemaResolverFilePattern("I.*.ts");
 
 export const start = async (busAddress: string, mongoUrl: string, mailClient: AbstractMailClient) => {
 	await bus.connect({

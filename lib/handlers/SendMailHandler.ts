@@ -2,7 +2,7 @@ import { FrusterRequest, FrusterResponse } from "fruster-bus";
 import { subscribe, injectable } from "fruster-decorators";
 import MailManager from "../managers/MailManager";
 
-import SendMailRequest from "../schemas/ISendMailRequestSchemas";
+import SendMailRequest from "../schemas/SendMailRequestSchemas";
 
 export const SERVICE_SUBJECT = "mail-service.send-mail";
 export const DEPRECATED_SUBJECT = "mail-service.send";

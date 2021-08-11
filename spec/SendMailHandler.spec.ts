@@ -6,7 +6,7 @@ import config from "../config";
 import { start } from "../fruster-mail-service";
 import errors from "../lib/errors";
 import { SERVICE_SUBJECT, DEPRECATED_SUBJECT } from "../lib/handlers/SendMailHandler";
-import SendMailRequest from "../lib/schemas/ISendMailRequestSchemas";
+import SendMailRequest from "../lib/schemas/SendMailRequestSchemas";
 
 import MockSendGridClient from "./support/MockSendGridClient";
 import specConstants from "./support/spec-constants";

@@ -6,7 +6,7 @@ import log from "fruster-log";
 import config from "../../config";
 import LogUtils from "../utils/LogUtils";
 import BatchLevelUtils from "../utils/BatchLevelUtils";
-import SendGroupedMailRequest from "../schemas/ISendGroupedMailRequestSchemas";
+import SendGroupedMailRequest from "../schemas/SendGroupedMailRequestSchemas";
 import MailManager from "../managers/MailManager";
 import GroupedMailRepo from "../repos/GroupedMailRepo";
 import GroupedMailBatchRepo from "../repos/GroupedMailBatchRepo";
