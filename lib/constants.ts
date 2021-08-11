@@ -15,6 +15,11 @@ export default {
 		RESOURCES: 20
 	},
 
-	createJobService: "schedule-service.create-job"
+	createJobService: "schedule-service.create-job",
+
+	mailClients: {
+		SEND_GRID: "sendGrid",
+		ID_RELAY: "idRelay"
+	}
 
 };

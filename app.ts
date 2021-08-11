@@ -5,11 +5,21 @@ import { start as healthStart } from "fruster-health";
 import config from "./config";
 import { start } from "./fruster-mail-service";
 import constants from "./lib/constants";
-import SendGridMailClient from "./lib/clients/SendGridMailClient";
+
 import AbstractMailClient from "./lib/clients/AbstractMailClient";
+import SendGridMailClient from "./lib/clients/SendGridMailClient";
+import IdRelayMailClient from "./lib/clients/IdRelayMailClient";
 
 const getMailClient = (): AbstractMailClient => {
-	return new SendGridMailClient();
+	switch (config.mailClient) {
+		case constants.mailClients.ID_RELAY:
+			log.info(`Use ${constants.mailClients.ID_RELAY} as mail client`);
+			return new IdRelayMailClient();
+
+		default:
+			log.info(`Use ${constants.mailClients.SEND_GRID} as mail client`);
+			return new SendGridMailClient();
+	}
 }
 
 /**
