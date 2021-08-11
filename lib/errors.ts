@@ -8,14 +8,8 @@ const serviceSpecificErrors = [
 		status: 400,
 		code: "MISSING_FIELDS",
 		title: "One or many required fields are missing",
-		detail: (detail) => detail
+		detail: (detail: string) => detail
 	},
-	{
-		status: 400,
-		code: "SENDGRID_ERRROR",
-		title: "Failed to send mail via sendgrid",
-		detail: (detail) => detail
-	}
 ];
 
-module.exports = require("fruster-errors")(serviceSpecificErrors);
+export default require("fruster-errors")(serviceSpecificErrors);

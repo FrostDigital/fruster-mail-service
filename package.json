@@ -3,33 +3,44 @@
 	"version": "0.0.2",
 	"private": true,
 	"scripts": {
-		"start": "node ./app.js",
-		"test": "nyc --reporter=html --check-coverage --lines 80 node ./spec/support/jasmine-runner.js"
+		"start": "ts-node ./app.ts",
+		"start:watch": "ts-node-dev ./app.ts",
+		"test": "nyc --reporter=html --check-coverage --lines 90 ts-node ./spec/support/jasmine-runner.ts",
+		"test:watch": "ts-node-dev --respawn --no-notify ./spec/support/jasmine-runner.ts"
 	},
 	"dependencies": {
-		"@sendgrid/mail": "^6.5.3",
-		"fruster-bus": "^0.5.10",
-		"fruster-errors": "0.1.2",
-		"fruster-health": "^0.0.14",
-		"fruster-log": "^0.0.18",
-		"mongodb": "^2.2.36",
-		"uuid": "^7.0.1"
+		"@sendgrid/mail": "^7.4.5",
+		"fruster-bus": "0.7.12-5",
+		"fruster-bus-ts-schema-resolver": "^0.0.8",
+		"fruster-errors": "^0.1.4",
+		"fruster-health": "^0.2.0",
+		"fruster-log": "^0.1.2",
+		"got": "^11.8.2",
+		"mongodb": "2.2.36",
+		"ms": "^2.1.3"
 	},
 	"devDependencies": {
-		"mongodb": "^2.2.36",
-		"fruster-test-utils": "^0.5.0",
-		"jasmine": "^3.5.0",
-		"jasmine-spec-reporter": "^4.2.1",
-		"nyc": "15.0.0"
-	},
-	"engines": {
-		"node": "10.5.0"
+		"@types/jasmine": "^3.8.2",
+		"@types/mongodb": "2.2.26",
+		"@types/ms": "^0.7.31",
+		"@types/node": "^16.4.13",
+		"@types/uuid": "^8.3.1",
+		"fruster-decorators": "0.1.6",
+		"fruster-test-utils": "^0.6.9",
+		"jasmine": "^3.8.0",
+		"jasmine-spec-reporter": "^7.0.0",
+		"nyc": "^15.1.0",
+		"ts-node": "10.0.0",
+		"ts-node-dev": "^1.1.8",
+		"typescript": "4.2.4"
 	},
 	"nyc": {
 		"exclude": [
 			"spec/*",
-			"lib/errors.js",
-			"config.js"
+			"lib/errors.ts",
+			"lib/constants.ts",
+			"lib/docs.ts",
+			"config.ts"
 		]
 	}
 }

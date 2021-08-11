@@ -1,1 +1,11 @@
 **/.git
+coverage
+.nyc_output
+node_modules
+.vscode
+.idea
+.health
+.DS_Store
+.editorconfig
+.jshintrc
+README.md

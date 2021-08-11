@@ -1,4 +1,4 @@
-FROM mhart/alpine-node:8
+FROM mhart/alpine-node:16
 
 ARG SOURCE_VERSION=na
 ENV SOURCE_VERSION=$SOURCE_VERSION
@@ -11,4 +11,4 @@ ADD . .
 RUN npm install
 EXPOSE 3200
 
-CMD ["node", "app.js"]
+CMD ["npm", "start"]
