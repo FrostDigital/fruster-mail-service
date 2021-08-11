@@ -50,8 +50,8 @@ export default {
 	/** Domains we are allowed to send from */
 	defaultFrom: process.env.DEFAULT_FROM || "no-reply@frost.se",
 
-	/** Mail client. Default is sendGrid */
-	mailClient: process.env.MAIL_CLIENT || "sendGrid",
+	/** Mail client. Default is sendGrid. Values - sendGrid,idRelay */
+	mailClient: process.env.MAIL_CLIENT || constants.mailClients.SEND_GRID,
 
 	/**
 	 * Your secret sendgrid API key from here:
@@ -90,5 +90,15 @@ export default {
 	 * Set multiple values as commas separated string, for example:
 	 * `frostdigital.se,frost.se`
 	 */
-	catchAllWhitelist: parseArray(process.env.CATCH_ALL_WHITELIST)
+	catchAllWhitelist: parseArray(process.env.CATCH_ALL_WHITELIST),
+
+	/**
+	 * Need this if mail client is idRelay
+	 */
+	idRelayUserName: process.env.ID_RELAY_USER_NAME,
+
+	/**
+	 * Need this if mail client is idRelay
+	 */
+	idRelayPassword: process.env.ID_RELAY_PASSWORD
 };
