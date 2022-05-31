@@ -1,6 +1,6 @@
 import { MailDataRequired } from "@sendgrid/mail";
-import { testBus as bus } from "fruster-bus";
-import frusterTestUtils, { FrusterTestUtilsConnection } from "fruster-test-utils";
+import { testBus as bus } from "@fruster/bus";
+import frusterTestUtils, { FrusterTestUtilsConnection } from "@fruster/test-utils";
 
 import config from "../config";
 import { start } from "../fruster-mail-service";
@@ -146,10 +146,10 @@ describe("SendMailHandler", () => {
 			});
 
 			fail();
-		} catch ({ status, error }) {
-			expect(status).toBe(400);
-			expect(error.code).toBe(errors.badRequest().error.code);
-			expect(error.detail).toBe("`to` array cannot empty");
+		} catch (error: any) {
+			expect(error.status).toBe(400);
+			expect(error.error.code).toBe(errors.badRequest().error.code);
+			expect(error.error.detail).toBe("`to` array cannot empty");
 		}
 	});
 
@@ -167,9 +167,9 @@ describe("SendMailHandler", () => {
 			});
 
 			fail();
-		} catch ({ status, error }) {
-			expect(status).toBe(400);
-			expect(error.code).toBe("MISSING_FIELDS");
+		} catch (error: any) {
+			expect(error.status).toBe(400);
+			expect(error.error.code).toBe("MISSING_FIELDS");
 		}
 	});
 
@@ -230,4 +230,5 @@ describe("SendMailHandler", () => {
 		expect(mockSendGrid.invocations[toWhitelistedEmail]).toBe(1);
 		expect(mockSendGrid.invocations[config.catchAllEmail]).toBe(1);
 	});
+
 });

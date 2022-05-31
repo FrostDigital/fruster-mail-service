@@ -1,7 +1,7 @@
 import ms from "ms";
-import { FrusterRequest, FrusterResponse } from "fruster-bus";
-import { subscribe, injectable, inject } from "fruster-decorators";
-import log from "fruster-log";
+import { FrusterRequest, FrusterResponse } from "@fruster/bus";
+import { subscribe, injectable, inject } from "@fruster/decorators";
+import log from "@fruster/log";
 
 import config from "../../config";
 import LogUtils from "../utils/LogUtils";
@@ -41,7 +41,6 @@ class SendGroupedMailHandler {
 	 */
 	@subscribe({
 		subject: SERVICE_SUBJECT,
-		requestSchema: "SendGroupedMailRequest",
 		docs: {
 			description: `Sends a mail that can be grouped.
 			mails sent using this endpoint will be sent in groups, based off the \`GROUPED_MAIL_BATCHES\` config.
@@ -98,7 +97,7 @@ class SendGroupedMailHandler {
 			await this.processGroupedMailForUser(to, key, mail, batch!);
 		}
 
-		return { status: 200 };
+		return { status: 200, data: undefined };
 	}
 
 	private async processGroupedMailForUser(

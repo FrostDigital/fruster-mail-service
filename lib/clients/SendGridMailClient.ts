@@ -1,10 +1,10 @@
+import log from "@fruster/log";
 import sgMail from "@sendgrid/mail";
-import log from "fruster-log";
-
 import config from "../../config";
 import errors from "../errors";
 import Mail, { SendMailParams } from "../models/Mail";
 import AbstractMailClient from "./AbstractMailClient";
+
 
 class SendGridMailClient extends AbstractMailClient {
 
@@ -29,7 +29,7 @@ class SendGridMailClient extends AbstractMailClient {
 				log.debug(`Successfully sent 1 mails ${subject} to ${to}`);
 			}
 		} catch (e) {
-			log.warn("Got failure from send grid", e);
+			log.warn("Got failure from sendgrid", e);
 		}
 	}
 

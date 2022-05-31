@@ -1,6 +1,6 @@
-import { FrusterRequest, FrusterResponse } from "fruster-bus";
-import { subscribe, injectable, inject } from "fruster-decorators";
-import log from "fruster-log";
+import { FrusterRequest, FrusterResponse } from "@fruster/bus";
+import { subscribe, injectable, inject } from "@fruster/decorators";
+import log from "@fruster/log";
 
 import LogUtils from "../utils/LogUtils";
 import BatchLevelUtils from "../utils/BatchLevelUtils";
@@ -114,7 +114,7 @@ class ProcessGroupedMailTimeoutsHandler {
 			await this.groupedMailRepo.deleteByQuery({ email, key });
 		}
 
-		return { status: 200 };
+		return { status: 200, data: undefined };
 	}
 }
 

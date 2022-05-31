@@ -45,10 +45,10 @@ describe("SendgridMail", () => {
 			});
 
 			fail();
-		} catch ({ status, error }) {
-			expect(status).toBe(400);
-			expect(error.code).toBe("MISSING_FIELDS");
-			expect(error.detail).toContain("subject");
+		} catch (error: any) {
+			expect(error.status).toBe(400);
+			expect(error.error.code).toBe("MISSING_FIELDS");
+			expect(error.error.detail).toContain("subject");
 		}
 	});
 
@@ -129,10 +129,10 @@ describe("SendgridMail", () => {
 		try {
 			sendGridMailClient.getMailData(mail);
 			fail();
-		} catch ({ status, error }) {
-			expect(status).toBe(400);
-			expect(error.code).toBe(errors.badRequest().error.code);
-			expect(error.detail).toBe("The request has not message or templateId");
+		} catch (error: any) {
+			expect(error.status).toBe(400);
+			expect(error.error.code).toBe(errors.badRequest().error.code);
+			expect(error.error.detail).toBe("The request has not message or templateId");
 		}
 	});
 

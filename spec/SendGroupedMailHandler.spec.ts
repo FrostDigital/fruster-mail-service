@@ -1,6 +1,6 @@
 import { MailDataRequired } from "@sendgrid/mail";
-import { testBus as bus } from "fruster-bus";
-import frusterTestUtils, { FrusterTestUtilsConnection } from "fruster-test-utils";
+import { testBus as bus } from "@fruster/bus";
+import frusterTestUtils, { FrusterTestUtilsConnection } from "@fruster/test-utils";
 
 import config from "../config";
 import { start } from "../fruster-mail-service";

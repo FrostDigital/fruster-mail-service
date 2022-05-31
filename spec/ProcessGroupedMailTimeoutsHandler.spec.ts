@@ -1,7 +1,7 @@
 import { MailDataRequired } from "@sendgrid/mail";
 import { Db } from "mongodb";
-import { testBus as bus } from "fruster-bus";
-import frusterTestUtils, { FrusterTestUtilsConnection } from "fruster-test-utils";
+import { testBus as bus } from "@fruster/bus";
+import frusterTestUtils, { FrusterTestUtilsConnection } from "@fruster/test-utils";
 
 import config from "../config";
 import { start } from "../fruster-mail-service";
@@ -89,14 +89,12 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 		for (let i = 0; i < 6; i++)
 			await bus.request({
 				subject: SEND_GROUPED_MAIL_SUBJECT,
-				skipOptionsRequest: true,
 				message: { data: mailData }
 			});
 
 		for (let i = 0; i < 15; i++)
 			await bus.request({
 				subject: SEND_GROUPED_MAIL_SUBJECT,
-				skipOptionsRequest: true,
 				message: { data: mailData }
 			});
 
@@ -105,14 +103,13 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 		/** Should push 5 mails since the last batch's timeout has been reached */
 		await bus.request({
 			subject: SERVICE_SUBJECT,
-			skipOptionsRequest: true
+			message: {}
 		});
 
 		/** Should push 5 mails since the batch level should have been decreased */
 		for (let i = 0; i < 5; i++)
 			await bus.request({
 				subject: SEND_GROUPED_MAIL_SUBJECT,
-				skipOptionsRequest: true,
 				message: { data: mailData }
 			});
 
@@ -134,7 +131,6 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 
 		await bus.request({
 			subject: SEND_GROUPED_MAIL_SUBJECT,
-			skipOptionsRequest: true,
 			message: { data: mailData }
 		});
 
@@ -142,7 +138,7 @@ describe("ProcessGroupedMailTimeoutsHandler", () => {
 
 		await bus.request({
 			subject: SERVICE_SUBJECT,
-			skipOptionsRequest: true
+			message: {}
 		});
 
 		const dbContents = await db.collection(constants.collections.GROUPED_MAIL_BATCHES).find().toArray();

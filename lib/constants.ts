@@ -7,7 +7,8 @@ export default {
 
 		// Name(s) of mongo collections
 		GROUPED_MAILS: "grouped-mails",
-		GROUPED_MAIL_BATCHES: "grouped-mail-batches"
+		GROUPED_MAIL_BATCHES: "grouped-mail-batches",
+		TEMPLATES: "templates"
 
 	},
 
