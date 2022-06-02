@@ -1,9 +1,16 @@
+import handlebars from "handlebars";
+import handlebarsHelpers from 'handlebars-helpers';
 import config from "../../config";
 import AbstractMailClient from "../clients/AbstractMailClient";
 import errors from "../errors";
 import Mail from "../models/Mail";
 import TemplateRepo from "../repos/TemplateRepo";
-import handlebars from "handlebars";
+
+const helpers = handlebarsHelpers();
+
+for (const k in helpers) {
+	handlebars.registerHelper(k, helpers[k]);
+}
 
 const layoutContentRegexp = /\{\{\s?content\s?\}\}/;
 class MailManager {

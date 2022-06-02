@@ -55,6 +55,8 @@ database to see if such template exists.
 
 Mail service will also expose CRUD endpoints so it is possible to manage templates e.g. via a custom admin UI.
 
+Templates are handlebars templates with a set of helpers registered (https://www.npmjs.com/package/handlebars-helpers).
+
 #### Layout template
 
 A template may have `layout` which is a reference to another template. That layout must have a variable named
