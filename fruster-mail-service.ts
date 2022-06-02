@@ -99,7 +99,7 @@ const registerTemplateHandlers = (mailManager: MailManager, db: Db) => {
 	injections({ templateRepo });
 
 	new GetTemplateByIdHandler();
-	new UpdateTemplateHandler();
+	new UpdateTemplateHandler(mailManager);
 	new CreateTemplateHandler();
 }
 
