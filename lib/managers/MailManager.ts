@@ -73,8 +73,8 @@ class MailManager {
 		return await this.sendMail(mail);
 	}
 
-	purgeTemplateCache(templateId: string) {
-		this.templateCache.delete(templateId);
+	purgeTemplateCache() {
+		this.templateCache.clear();
 	}
 
 	private setCatchMail(email: string): string {

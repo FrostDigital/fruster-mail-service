@@ -47,7 +47,7 @@ class UpdateTemplateHandler {
 
 		const updatedTemplate = await this.templateRepo.update(params.id, data);
 
-		this.mailManager.purgeTemplateCache(params.id);
+		this.mailManager.purgeTemplateCache();
 
 		if (!updatedTemplate) {
 			throw errors.internalServerError(`Failed to update template ${params.id}`)
