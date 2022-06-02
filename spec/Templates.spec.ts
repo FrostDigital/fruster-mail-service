@@ -168,16 +168,30 @@ describe("Templates", () => {
 			}
 		});
 
+		const {status: statusWithInvalidOwner} = await testBus.request<any, Template>({
+			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			throwErrors: false,
+			message: {
+				user: {
+					scopes: GET_TEMPLATE_BY_ID_PERMISSIONS,
+					profile: {
+						organisationId: "another owner"
+					}
+				},
+				params: {
+					id: createdTemplate.id
+				},
+			}
+		});
+
 		const {status: statusWithOwner} = await testBus.request<any, Template>({
 			subject: GET_TEMPLATE_BY_ID_SUBJECT,
 			throwErrors: false,
 			message: {
 				user: {
 					scopes: GET_TEMPLATE_BY_ID_PERMISSIONS,
-					data: {
-						profile: {
-							organisationId: owner
-						}
+					profile: {
+						organisationId: owner
 					}
 				},
 				params: {
@@ -189,6 +203,7 @@ describe("Templates", () => {
 		config.templateOwnerProp = undefined;
 
 		expect(statusWithoutOwner).toBe(403);
+		expect(statusWithInvalidOwner).toBe(403);
 		expect(statusWithOwner).toBe(200);
 	});
 
