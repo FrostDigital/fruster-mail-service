@@ -1,4 +1,4 @@
-import handlebars, { template } from "handlebars";
+import handlebars from "handlebars";
 import handlebarsHelpers from 'handlebars-helpers';
 import config from "../../config";
 import AbstractMailClient from "../clients/AbstractMailClient";
