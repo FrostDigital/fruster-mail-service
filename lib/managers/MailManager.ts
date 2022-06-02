@@ -1,4 +1,4 @@
-import handlebars from "handlebars";
+import handlebars, { template } from "handlebars";
 import handlebarsHelpers from 'handlebars-helpers';
 import config from "../../config";
 import AbstractMailClient from "../clients/AbstractMailClient";
@@ -71,6 +71,10 @@ class MailManager {
 		}
 
 		return await this.sendMail(mail);
+	}
+
+	purgeTemplateCache(templateId: string) {
+		this.templateCache.delete(templateId);
 	}
 
 	private setCatchMail(email: string): string {

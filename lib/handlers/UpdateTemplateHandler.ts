@@ -7,6 +7,7 @@ import TemplateRepo from "../repos/TemplateRepo";
 import { UpdateTemplateRequest } from "../schemas/UpdateTemplateRequest";
 import log from "@fruster/log";
 import { getDescendantProp } from "../utils/ObjectUtils";
+import MailManager from "../managers/MailManager";
 
 export const UPDATE_TEMPLATE_SUBJECT = "http.put.mail.template.:id";
 export const UPDATE_TEMPLATE_PERMISSIONS = ["mail.template.update"];
@@ -16,6 +17,8 @@ class UpdateTemplateHandler {
 
 	@inject()
 	private templateRepo!: TemplateRepo;
+
+	constructor(private mailManager: MailManager) {}
 
 	/**
 	 * Handle service request.
@@ -43,6 +46,8 @@ class UpdateTemplateHandler {
 		}
 
 		const updatedTemplate = await this.templateRepo.update(params.id, data);
+
+		this.mailManager.purgeTemplateCache(params.id);
 
 		if (!updatedTemplate) {
 			throw errors.internalServerError(`Failed to update template ${params.id}`)
