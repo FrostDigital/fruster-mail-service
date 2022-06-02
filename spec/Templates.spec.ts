@@ -13,7 +13,6 @@ import { UpdateTemplateRequest } from '../lib/schemas/UpdateTemplateRequest';
 import MockSendGridClient from "./support/MockSendGridClient";
 import specConstants from "./support/spec-constants";
 
-
 describe("Templates", () => {
 
 	let mockSendGridClient: MockSendGridClient;
@@ -133,6 +132,64 @@ describe("Templates", () => {
 
 		expect(status).toBe(200);
 		expect(mockSendGridClient.lastSentMail).toBe("<html><body>My name is Earl</body></html>");
+	});
+
+	it("should limit access based on owner and TEMPLATE_OWNER_PROP", async () => {
+		config.templateOwnerProp = "profile.organisationId";
+
+		mockSendGridClient.mockSuccess("foo@bar.se");
+
+		const owner = "d64d222d-956a-41c6-aee4-53047b43fec1";
+
+		const {data: createdTemplate} = await testBus.request<CreateTemplateRequest, Template>({
+			subject: CREATE_TEMPLATE_SUBJECT,
+			message: {
+				user: {
+					scopes: CREATE_TEMPLATE_PERMISSIONS
+				},
+				data: {
+					html: "My name is {{firstName}}",
+					subject: "Hello",
+					owner,
+				}
+			}
+		});
+
+		const {status: statusWithoutOwner} = await testBus.request<any, Template>({
+			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			throwErrors: false,
+			message: {
+				user: {
+					scopes: GET_TEMPLATE_BY_ID_PERMISSIONS
+				},
+				params: {
+					id: createdTemplate.id
+				},
+			}
+		});
+
+		const {status: statusWithOwner} = await testBus.request<any, Template>({
+			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			throwErrors: false,
+			message: {
+				user: {
+					scopes: GET_TEMPLATE_BY_ID_PERMISSIONS,
+					data: {
+						profile: {
+							organisationId: owner
+						}
+					}
+				},
+				params: {
+					id: createdTemplate.id
+				},
+			}
+		});
+
+		config.templateOwnerProp = undefined;
+
+		expect(statusWithoutOwner).toBe(403);
+		expect(statusWithOwner).toBe(200);
 	});
 
 });

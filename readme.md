@@ -71,6 +71,32 @@ Example of layout:
 </html>
 ```
 
+#### Access control CRUD templates
+
+In some uses cases there is a need to narrow down who is allowed to CRUD templates.
+
+In many cases the built in Fruster permissions/scope mapping will do.
+
+By mapping `mail.template.update`, `mail.template.create` and `mail.template.get` to roles
+you can decide which role(s) that are allowed to do that.
+
+Further it is possible to match a logged in users property with a template. For example
+if the logged in user belongs to a, lets say `organisation` (could be anything), which is
+set on the user `profile.organisationId`.
+
+The we can set the organisation id as `owner` and add configuration `TEMPLATE_OWNER_PROP` that will instruct
+fruster mail service to check this when CRUDing templates.
+
+Example:
+
+```
+# Will make sure that logged in users who it attempting to CRUD the template
+# has value "profile.organisationId" which equals to the one set as "owner"
+# on the template
+TEMPLATE_OWNER_PROP=profile.organisationId
+```
+
+
 
 ## Grouped/batched emails
 

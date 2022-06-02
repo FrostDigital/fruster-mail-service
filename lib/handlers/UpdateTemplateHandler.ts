@@ -1,9 +1,11 @@
 import { FrusterRequest, FrusterResponse } from "@fruster/bus";
 import { inject, injectable, subscribe } from "@fruster/decorators";
+import config from "../../config";
 import errors from "../errors";
 import Template from "../models/Template";
 import TemplateRepo from "../repos/TemplateRepo";
 import { UpdateTemplateRequest } from "../schemas/UpdateTemplateRequest";
+import log from "@fruster/log";
 
 export const UPDATE_TEMPLATE_SUBJECT = "http.put.mail.template.:id";
 export const UPDATE_TEMPLATE_PERMISSIONS = ["mail.template.update"];
@@ -27,8 +29,13 @@ class UpdateTemplateHandler {
 			}
 		}
 	})
-	async handle({ data, params }: FrusterRequest<UpdateTemplateRequest, {id: string}>): Promise<FrusterResponse<Template>> {
+	async handle({ data, user, params }: FrusterRequest<UpdateTemplateRequest, {id: string}>): Promise<FrusterResponse<Template>> {
 		const template = await this.templateRepo.getById(params.id);
+
+		if (config.templateOwnerProp && template?.owner && config.templateOwnerProp !== template.owner) {
+			log.warn(`User ${user.id} attempted to update template ${template.id} but owner prop did not match`);
+			return errors.forbidden("Not allowed to access template");
+		}
 
 		if (!template) {
 			throw errors.notFound(`Template with id ${params.id} does not exist`);
