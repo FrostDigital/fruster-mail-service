@@ -1,3 +1,5 @@
+import {buildErrors} from "@fruster/bus";
+
 /*
 	This is the place to define custom errors this service may throw in addition
 	to default ones (BAD_REQUEST, NOT_FOUND, UNAUTHORIZED, FORBIDDEN, INTERNAL_SERVER_ERROR).
@@ -12,4 +14,4 @@ const serviceSpecificErrors = [
 	},
 ];
 
-export default require("fruster-errors")(serviceSpecificErrors);
+export default buildErrors(serviceSpecificErrors);

@@ -1,5 +1,5 @@
-import { FrusterRequest, FrusterResponse } from "fruster-bus";
-import { subscribe, injectable } from "fruster-decorators";
+import { FrusterRequest, FrusterResponse } from "@fruster/bus";
+import { subscribe, injectable } from "@fruster/decorators";
 import MailManager from "../managers/MailManager";
 
 import SendMailRequest from "../schemas/SendMailRequestSchemas";
@@ -36,7 +36,6 @@ class SendMailHandler {
 	 */
 	@subscribe({
 		subject: SERVICE_SUBJECT,
-		requestSchema: "SendMailRequest",
 		docs: {
 			description: "Sends a mail to one or more mails (emails) addresses",
 			errors: {
@@ -49,7 +48,7 @@ class SendMailHandler {
 	async handle({ data }: FrusterRequest<SendMailRequest>): Promise<FrusterResponse<void>> {
 		await this.mailManager.sendMail(data);
 
-		return { status: 200 };
+		return { status: 200, data: undefined };
 	}
 }
 

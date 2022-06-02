@@ -33,10 +33,10 @@ describe("IdRelayMail", () => {
 			});
 
 			fail();
-		} catch ({ status, error }) {
-			expect(status).toBe(400);
-			expect(error.code).toBe("MISSING_FIELDS");
-			expect(error.detail).toContain("templateId");
+		} catch (error: any) {
+			expect(error.status).toBe(400);
+			expect(error.error.code).toBe("MISSING_FIELDS");
+			expect(error.error.detail).toContain("templateId");
 		}
 	});
 

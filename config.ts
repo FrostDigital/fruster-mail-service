@@ -1,5 +1,5 @@
 import ms from "ms";
-import log from "fruster-log";
+import log from "@fruster/log";
 
 import constants from "./lib/constants";
 
@@ -23,7 +23,7 @@ const parseBatchString = (string: string) => {
 		});
 
 		return output;
-	} catch (err) {
+	} catch (err: any) {
 		log.error("Error parsing GROUPED_MAIL_BATCHES", err.stack);
 	}
 }
@@ -59,7 +59,9 @@ export default {
 	 */
 	sendGridApiKey: process.env.SENDGRID_API_KEY || "",
 
-	/** Characters around variables placed within templates. For instance -firstName- */
+	/**
+	 * Characters around variables placed within templates. For instance -firstName-
+	 */
 	substitutionCharacter: parseArray(process.env.SUBSTITUTION_CHARACTER) || ["-", "-"],
 
 	/** Whether or not to enable grouped mails */
@@ -100,5 +102,22 @@ export default {
 	/**
 	 * Need this if mail client is idRelay
 	 */
-	idRelayPassword: process.env.ID_RELAY_PASSWORD
+	idRelayPassword: process.env.ID_RELAY_PASSWORD,
+
+	/**
+	 * If enabled mail service will manage email templates and expose
+	 * endpoints to get and edit those.
+	 *
+	 * Note that this requires a database to be configured.
+	 */
+	templatesEnabled: process.env.TEMPLATES_ENABLED === "true",
+
+	/**
+	 * If set the named property of the logged in user will be matched
+	 * with templates `owner` when CRUDing templates.
+	 *
+	 * Only applicable when TEMPLATES_ENABLED is true.
+	 */
+	templateOwnerProp: process.env.TEMPLATE_OWNER_PROP
+
 };

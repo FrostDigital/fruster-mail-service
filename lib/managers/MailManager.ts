@@ -1,11 +1,25 @@
+import handlebars from "handlebars";
+import handlebarsHelpers from 'handlebars-helpers';
 import config from "../../config";
 import AbstractMailClient from "../clients/AbstractMailClient";
 import errors from "../errors";
 import Mail from "../models/Mail";
+import TemplateRepo from "../repos/TemplateRepo";
 
+const helpers = handlebarsHelpers();
+
+for (const k in helpers) {
+	handlebars.registerHelper(k, helpers[k]);
+}
+
+const layoutContentRegexp = /\{\{\s?content\s?\}\}/;
 class MailManager {
 
 	private mailClient!: AbstractMailClient;
+
+	templateRepo?: TemplateRepo;
+
+	private templateCache = new Map<string, Handlebars.TemplateDelegate>();
 
 	//It is not possible to inject mail client. It is making issues with unit tests.
 	constructor(mailClient: AbstractMailClient) {
@@ -17,6 +31,11 @@ class MailManager {
 
 		if (isMultipleTo && !to.length)
 			throw errors.badRequest("`to` array cannot empty");
+
+		if (config.templatesEnabled && templateId) {
+			const templateFn = await this.getTemplate(templateId);
+			message = templateFn(templateArgs);
+		}
 
 		this.mailClient.validate({ to, from, subject, templateId, message });
 
@@ -31,8 +50,8 @@ class MailManager {
 			to,
 			from: from || config.defaultFrom,
 			subject,
-			templateId,
-			templateArgs,
+			templateId: config.templatesEnabled ? undefined : templateId,
+			templateArgs: config.templatesEnabled ? undefined : templateArgs,
 			message
 		});
 	}
@@ -54,6 +73,10 @@ class MailManager {
 		return await this.sendMail(mail);
 	}
 
+	purgeTemplateCache() {
+		this.templateCache.clear();
+	}
+
 	private setCatchMail(email: string): string {
 		if (config.catchAllWhitelist) {
 			const toDomain = email.split("@")[1];
@@ -61,6 +84,46 @@ class MailManager {
 		} else {
 			return config.catchAllEmail as string; //This will not undefined because it is already checked before
 		}
+	}
+
+	private async getTemplate(templateId: string) {
+		if (!this.templateRepo) {
+			throw new Error("templateRepo is not set, should not happen");
+		}
+
+		const templateFromCache = this.templateCache.get(templateId);
+
+		if (templateFromCache) {
+			return templateFromCache;
+		}
+
+		const template = await this.templateRepo.getById(templateId);
+
+		if (!template) {
+			throw new Error(`Cannot send mail, template ${templateId} does not exist`);
+		}
+
+		let layoutHtml = "";
+
+		if (template.layout) {
+			const layout = await this.templateRepo.getById(template.layout);
+
+			if (!layout) {
+				throw new Error(`Cannot send mail, layout ${template.layout} referenced from template ${templateId} does not exist`);
+			}
+
+			if (layout.layout) {
+				throw new Error(`Nested layouts are not supported`); // TODO: Should be simple to add support if ever needed
+			}
+
+			layoutHtml = layout.html;
+		}
+
+		const templateFn = handlebars.compile(layoutHtml ? layoutHtml.replace(layoutContentRegexp, template.html) : template.html);
+
+		this.templateCache.set(templateId, templateFn);
+
+		return templateFn;
 	}
 
 }

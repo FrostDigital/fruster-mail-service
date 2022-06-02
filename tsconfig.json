@@ -20,6 +20,7 @@
 		"checkJs": true
 	},
 	"exclude": [
-		"lib/schemas/node_modules/*"
+		"lib/schemas/node_modules/*",
+		"coverage"
 	]
 }

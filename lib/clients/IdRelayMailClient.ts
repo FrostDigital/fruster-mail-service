@@ -1,5 +1,5 @@
 import got from "got";
-import log from "fruster-log";
+import log from "@fruster/log";
 
 import config from "../../config";
 import errors from "../errors";

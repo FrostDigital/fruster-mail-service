@@ -8,6 +8,7 @@ class MockSendGridClient extends SendGridMailClient {
 	private mockResponses: { [email: string]: { type: Status, error?: string } } = {};
 	public invocations: { [to: string]: number } = {};
 	public interceptors: { [invocation: number]: { [to: string]: Function } } = {};
+	public lastSentMail? = "";
 
 	constructor() {
 		super();
@@ -33,6 +34,8 @@ class MockSendGridClient extends SendGridMailClient {
 
 		if (!response)
 			throw new Error(`Missing mock response for device token ${toEmail}`);
+
+		this.lastSentMail = message;
 
 		response.type === "success" ? Promise.resolve() : Promise.reject(response.error);
 	}

@@ -27,7 +27,10 @@ export default interface Mail {
 	message?: string;
 
 	/**
-	 * Required if `message` is not used! An optional id of a sendgrid template to use.
+	 * Required if `message` is not used!
+	 * This is either id of template managed by mail service TEMPLATE_ENABLED is
+	 * true. Otherwise this is the id of template in mail provider, such as sendgrid.
+	 *
 	 * If this is used, the message field is ignored.
 	 * @default "5dc78985-ee1f-431d-9266-5eb1a2e7fb96"
 	 */

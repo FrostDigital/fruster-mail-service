@@ -1,6 +1,7 @@
 
-import * as log from "fruster-log";
-import { start as healthStart } from "fruster-health";
+import * as log from "@fruster/log";
+import { start as healthStart } from "@fruster/health";
+import bus from "@fruster/bus";
 
 import config from "./config";
 import { start } from "./fruster-mail-service";
@@ -33,7 +34,7 @@ const getMailClient = (): AbstractMailClient => {
 	try {
 		await start(config.bus, config.mongoUrl, getMailClient());
 		log.info(`Successfully started ${constants.SERVICE_NAME}`);
-		healthStart();
+		healthStart(bus);
 	} catch (err) {
 		log.error(`Failed starting ${constants.SERVICE_NAME}`, err);
 		process.exit(1);
