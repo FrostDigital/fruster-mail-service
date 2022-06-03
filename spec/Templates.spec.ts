@@ -207,4 +207,26 @@ describe("Templates", () => {
 		expect(statusWithOwner).toBe(200);
 	});
 
+
+	it("should fail to create if request is invalid", async () => {
+		const {status} = await testBus.request<CreateTemplateRequest, Template>({
+			subject: CREATE_TEMPLATE_SUBJECT,
+			throwErrors: false,
+			message: {
+				user: {
+					scopes: CREATE_TEMPLATE_PERMISSIONS
+				},
+				data: {
+					html: "This is body",
+					subject: "This is subject",
+					// @ts-ignore: For the sake of testing
+					foo: "Non valid"
+				}
+			}
+		});
+
+		expect(status).toBe(400);
+	});
+
+
 });
