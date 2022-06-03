@@ -8,7 +8,7 @@ class TemplateRepo {
 	private collection: Collection;
 
 	constructor(db: Db) {
-		this.collection = db.collection(constants.collections.GROUPED_MAILS);
+		this.collection = db.collection(constants.collections.TEMPLATES);
 	}
 
 	async create(template: Omit<Template, "metadata" | "id">) {
