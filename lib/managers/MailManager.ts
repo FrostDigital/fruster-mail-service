@@ -19,7 +19,7 @@ class MailManager {
 
 	templateRepo?: TemplateRepo;
 
-	private templateCache = new Map<string, Handlebars.TemplateDelegate>();
+	private templateCache = new Map<string, {body: Handlebars.TemplateDelegate, subject: Handlebars.TemplateDelegate}>();
 
 	//It is not possible to inject mail client. It is making issues with unit tests.
 	constructor(mailClient: AbstractMailClient) {
@@ -33,8 +33,9 @@ class MailManager {
 			throw errors.badRequest("`to` array cannot empty");
 
 		if (config.templatesEnabled && templateId) {
-			const templateFn = await this.getTemplate(templateId);
-			message = templateFn(templateArgs);
+			const template = await this.getTemplate(templateId);
+			message = template.body(templateArgs);
+			subject = template.subject(templateArgs);
 		}
 
 		this.mailClient.validate({ to, from, subject, templateId, message });
@@ -120,10 +121,16 @@ class MailManager {
 		}
 
 		const templateFn = handlebars.compile(layoutHtml ? layoutHtml.replace(layoutContentRegexp, template.html) : template.html);
+		const subjectTemplateFn = handlebars.compile(template.subject || "");
 
-		this.templateCache.set(templateId, templateFn);
+		const templates = {
+			body: templateFn,
+			subject: subjectTemplateFn
+		}
 
-		return templateFn;
+		this.templateCache.set(templateId, templates);
+
+		return templates;
 	}
 
 }
