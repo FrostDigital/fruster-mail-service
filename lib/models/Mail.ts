@@ -45,6 +45,12 @@ export default interface Mail {
 
 export interface SendMailParams extends Mail {
 	from: string;
+
+	/**
+	 * If message is plain text. Will if so convert line breaks
+	 * into <br/> if needed to.
+	 */
+	plainText?: boolean;
 }
 
 export interface GroupedMail extends Omit<Mail, "to"> {

@@ -33,9 +33,9 @@ class SendGridMailClient extends AbstractMailClient {
 		}
 	}
 
-	getMailData({ to, from, subject, templateId, templateArgs, message }: SendMailParams): sgMail.MailDataRequired {
+	getMailData({ to, from, subject, templateId, templateArgs, message, plainText }: SendMailParams): sgMail.MailDataRequired {
 		if (message) {
-			const html = message.replace(new RegExp('\r?\n', 'g'), '<br />');
+			const html = plainText ? message.replace(new RegExp('\r?\n', 'g'), '<br />') : message;
 
 			return { to, from, subject, text: message, html };
 		} else if (templateId) {
