@@ -53,7 +53,8 @@ class MailManager {
 			subject,
 			templateId: config.templatesEnabled ? undefined : templateId,
 			templateArgs: config.templatesEnabled ? undefined : templateArgs,
-			message
+			message,
+			plainText: (config.templatesEnabled && templateId) ? false : true
 		});
 	}
 
