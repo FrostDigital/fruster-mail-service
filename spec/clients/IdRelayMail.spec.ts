@@ -1,5 +1,5 @@
-import IdRelayMailClient from "../lib/clients/IdRelayMailClient";
-import config from "../config";
+import IdRelayMailClient from "../../lib/clients/IdRelayMailClient";
+import config from "../../config";
 
 describe("IdRelayMail", () => {
 	const idRelayMailClient = new IdRelayMailClient();
