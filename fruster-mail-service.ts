@@ -33,7 +33,7 @@ export const start = async (busAddress: string, mongoUrl: string, mailClient: Ab
 
 	let db: Db | undefined = undefined;
 
-	if (config.groupedMailBatches || config.templatesEnabled || config.mailClient === constants.mailClients.FLOW_MAILER) {
+	if (config.groupedMailsEnabled || config.templatesEnabled || config.mailClient === constants.mailClients.FLOW_MAILER) {
 		db = await connect(mongoUrl);
 
 		if (!process.env.CI) await createIndexes(db);
