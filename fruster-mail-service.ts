@@ -7,19 +7,21 @@ import { injections } from "@fruster/decorators";
 import config from "./config";
 import constants from "./lib/constants";
 import AbstractMailClient from "./lib/clients/AbstractMailClient";
+import FlowMailerMailClient from "./lib/clients/FlowMailerMailClient";
+import MailManager from "./lib/managers/MailManager";
 import GroupedMailBatchRepo from "./lib/repos/GroupedMailBatchRepo";
 import GroupedMailRepo from "./lib/repos/GroupedMailRepo";
-import MailManager from "./lib/managers/MailManager";
-
+import TemplateRepo from "./lib/repos/TemplateRepo";
+import AccessTokenRepo from "./lib/repos/AccessTokenRepo";
 import SendMailHandler from "./lib/handlers/SendMailHandler";
 import SendGroupedMailHandler from "./lib/handlers/SendGroupedMailHandler";
 import ProcessGroupedMailTimeoutsHandler, {
 	SERVICE_SUBJECT as PROCESS_GROUPED_MAIL_TIMEOUTS_SUBJECT
 } from "./lib/handlers/ProcessGroupedMailTimeoutsHandler";
-import TemplateRepo from "./lib/repos/TemplateRepo";
 import GetTemplateByIdHandler from "./lib/handlers/GetTemplateByIdHandler";
 import UpdateTemplateHandler from "./lib/handlers/UpdateTemplateHandler";
 import CreateTemplateHandler from "./lib/handlers/CreateTemplateHandler";
+
 
 export const start = async (busAddress: string, mongoUrl: string, mailClient: AbstractMailClient) => {
 	await bus.connect({
@@ -29,15 +31,18 @@ export const start = async (busAddress: string, mongoUrl: string, mailClient: Ab
 	if (config.catchAllEmail)
 		log.warn(`Catch all is enabled - all emails will be sent to ${config.catchAllEmail} - this should NOT be used in production`);
 
-	const mailManager = new MailManager(mailClient);
+	let db: Db | undefined = undefined;
 
-	let db: Db | undefined = undefined;
-
-	if (config.groupedMailBatches || config.templatesEnabled) {
+	if (config.groupedMailBatches || config.templatesEnabled || config.mailClient === constants.mailClients.FLOW_MAILER) {
 		db = await connect(mongoUrl);
 
 		if (!process.env.CI) await createIndexes(db);
+
+		if (config.mailClient === constants.mailClients.FLOW_MAILER)
+			(mailClient as FlowMailerMailClient).setAccessTokenRepo(new AccessTokenRepo(db));
 	}
+
+	const mailManager = new MailManager(mailClient);
 
 	if (config.groupedMailsEnabled) {
 		if (!db) {
@@ -111,8 +116,12 @@ const createIndexes = async (db: Db) => {
 		}
 
 		if (config.templatesEnabled) {
-			await db.collection(constants.collections.TEMPLATES).createIndex({ id: 1 }, { unique: true})
+			await db.collection(constants.collections.TEMPLATES).createIndex({ id: 1 }, { unique: true })
 		}
+
+		if (config.mailClient === constants.mailClients.FLOW_MAILER)
+			//https://flowmailer.com/apidoc/flowmailer-api#authentication
+			await db.collection(constants.collections.ACCESS_TOKENS).createIndex({ created: 1 }, { expireAfterSeconds: 59 });
 	} catch (err: any) {
 		log.info("Mongodb:", err.message);
 	}

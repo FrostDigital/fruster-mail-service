@@ -50,7 +50,7 @@ export default {
 	/** Domains we are allowed to send from */
 	defaultFrom: process.env.DEFAULT_FROM || "no-reply@frost.se",
 
-	/** Mail client. Default is sendGrid. Values - sendGrid,idRelay */
+	/** Mail client. Default is sendGrid. Values - sendGrid, idRelay, flowMailer */
 	mailClient: process.env.MAIL_CLIENT || constants.mailClients.SEND_GRID,
 
 	/**
@@ -118,6 +118,15 @@ export default {
 	 *
 	 * Only applicable when TEMPLATES_ENABLED is true.
 	 */
-	templateOwnerProp: process.env.TEMPLATE_OWNER_PROP
+	templateOwnerProp: process.env.TEMPLATE_OWNER_PROP,
+
+	/**
+	 * Flowmailer configurations - https://dashboard.flowmailer.net/setup/sources/credentialswizard.html
+	 */
+	flowMailer: {
+		clientId: process.env.FLOW_MAILER_CLIENT_ID || "3717fbafda22471cfe7bcfb4bb51ba0f5b979dd2",
+		clientSecret: process.env.FLOW_MAILER_CLIENT_SECRET || "7be80ed02e61bc904fcf64799b324d18cdbcfe20",
+		accountId: process.env.FLOW_MAILER_ACCOUNT_ID || "4459"
+	}
 
 };

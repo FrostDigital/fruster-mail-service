@@ -11,8 +11,7 @@ export default {
 			bus,
 			service: { start },
 			afterStart,
-			mongoUrl: `mongodb://localhost:27017/${constants.SERVICE_NAME}-test`,
-
+			mongoUrl: `mongodb://localhost:27017/${constants.SERVICE_NAME}-test`
 		};
 	},
 };

@@ -1,8 +1,8 @@
 import { EmailData } from "@sendgrid/helpers/classes/email-address";
 
-import config from "../config";
-import errors from "../lib/errors";
-import SendGridMailClient from "../lib/clients/SendGridMailClient";
+import config from "../../config";
+import errors from "../../lib/errors";
+import SendGridMailClient from "../../lib/clients/SendGridMailClient";
 
 describe("SendgridMail", () => {
 	const sendGridMailClient = new SendGridMailClient();

@@ -8,7 +8,8 @@ export default {
 		// Name(s) of mongo collections
 		GROUPED_MAILS: "grouped-mails",
 		GROUPED_MAIL_BATCHES: "grouped-mail-batches",
-		TEMPLATES: "templates"
+		TEMPLATES: "templates",
+		ACCESS_TOKENS: "access-tokens"
 
 	},
 
@@ -20,7 +21,8 @@ export default {
 
 	mailClients: {
 		SEND_GRID: "sendGrid",
-		ID_RELAY: "idRelay"
+		ID_RELAY: "idRelay",
+		FLOW_MAILER: "flowMailer"
 	}
 
 };
