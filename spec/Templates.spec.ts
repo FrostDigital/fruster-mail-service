@@ -12,6 +12,7 @@ import SendMailRequest from '../lib/schemas/SendMailRequestSchemas';
 import { UpdateTemplateRequest } from '../lib/schemas/UpdateTemplateRequest';
 import MockSendGridClient from "./support/MockSendGridClient";
 import specConstants from "./support/spec-constants";
+import { SendMailResponse } from '../lib/schemas/SendMailResponse';
 
 describe("Templates", () => {
 
@@ -132,7 +133,7 @@ describe("Templates", () => {
 			}
 		});
 
-		const { status } = await testBus.request<SendMailRequest, void>({
+		const { status, data } = await testBus.request<SendMailRequest, SendMailResponse>({
 			subject: SERVICE_SUBJECT,
 			message: {
 				data: {
@@ -147,6 +148,11 @@ describe("Templates", () => {
 
 		expect(status).toBe(200);
 		expect(mockSendGridClient.lastSentMail).toBe("<html><body>My name is Earl</body></html>");
+
+		expect(data.subject).toBe("Hello");
+		expect(data.body).toBe("<html><body>My name is Earl</body></html>");
+		expect(data.to).toBe("foo@bar.se");
+		expect(data.from).toBe("no-reply@frost.se");
 	});
 
 	it("should limit access based on owner and TEMPLATE_OWNER_PROP", async () => {

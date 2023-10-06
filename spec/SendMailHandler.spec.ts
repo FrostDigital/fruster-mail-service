@@ -10,6 +10,7 @@ import SendMailRequest from "../lib/schemas/SendMailRequestSchemas";
 
 import MockSendGridClient from "./support/MockSendGridClient";
 import specConstants from "./support/spec-constants";
+import { SendMailResponse } from "../lib/schemas/SendMailResponse";
 
 describe("SendMailHandler", () => {
 
@@ -120,7 +121,7 @@ describe("SendMailHandler", () => {
 		mockSendGrid.mockSuccess(email);
 		mockSendGrid.mockInterceptorAll(email, (data: MailDataRequired) => expect(data).toEqual(jsonToSendGridTransactionalTemplateMail));
 
-		const { status } = await bus.request<SendMailRequest, void>({
+		const { status, data } = await bus.request<SendMailRequest, SendMailResponse>({
 			subject: DEPRECATED_SUBJECT,
 			message: { data: mail }
 		});
@@ -128,6 +129,9 @@ describe("SendMailHandler", () => {
 		expect(mockSendGrid.invocations[email]).toBe(1);
 
 		expect(status).toBe(200);
+		expect(data.to).toBe(mail.to);
+		expect(data.from).toBe(mail.from);
+		expect(data.templateId).toBe(mail.templateId);
 	});
 
 	it("should throw error if to emails is empty", async () => {

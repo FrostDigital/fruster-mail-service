@@ -3,7 +3,7 @@ import handlebarsHelpers from 'handlebars-helpers';
 import config from "../../config";
 import AbstractMailClient from "../clients/AbstractMailClient";
 import errors from "../errors";
-import Mail from "../models/Mail";
+import Mail, { SendMailParams } from "../models/Mail";
 import TemplateRepo from "../repos/TemplateRepo";
 
 const helpers = handlebarsHelpers();
@@ -47,7 +47,7 @@ class MailManager {
 				to = this.setCatchMail(to as string);
 		}
 
-		await this.mailClient.sendMail({
+		const params: SendMailParams = {
 			to,
 			from: from || config.defaultFrom,
 			subject,
@@ -55,7 +55,11 @@ class MailManager {
 			templateArgs: config.templatesEnabled ? undefined : templateArgs,
 			message,
 			plainText: (config.templatesEnabled && templateId) ? false : true
-		});
+		};
+
+		await this.mailClient.sendMail(params);
+
+		return params;
 	}
 
 	async sendGroupedMail(mail: Mail, numberOfMails: number) {
