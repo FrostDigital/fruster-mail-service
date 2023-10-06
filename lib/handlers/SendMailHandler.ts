@@ -1,8 +1,9 @@
 import { FrusterRequest, FrusterResponse } from "@fruster/bus";
-import { subscribe, injectable } from "@fruster/decorators";
+import { injectable, subscribe } from "@fruster/decorators";
 import MailManager from "../managers/MailManager";
 
 import SendMailRequest from "../schemas/SendMailRequestSchemas";
+import { SendMailResponse } from "../schemas/SendMailResponse";
 
 export const SERVICE_SUBJECT = "mail-service.send-mail";
 export const DEPRECATED_SUBJECT = "mail-service.send";
@@ -27,7 +28,7 @@ class SendMailHandler {
 		subject: DEPRECATED_SUBJECT,
 		deprecated: `Use ${SERVICE_SUBJECT} instead`
 	})
-	async depHandle(req: FrusterRequest<SendMailRequest>): Promise<FrusterResponse<void>> {
+	async depHandle(req: FrusterRequest<SendMailRequest>): Promise<FrusterResponse<SendMailResponse>> {
 		return this.handle(req);
 	}
 
@@ -45,10 +46,19 @@ class SendMailHandler {
 			}
 		}
 	})
-	async handle({ data }: FrusterRequest<SendMailRequest>): Promise<FrusterResponse<void>> {
-		await this.mailManager.sendMail(data);
+	async handle({ data }: FrusterRequest<SendMailRequest>): Promise<FrusterResponse<SendMailResponse>> {
+		const res = await this.mailManager.sendMail(data);
 
-		return { status: 200, data: undefined };
+		return {
+			status: 200,
+			data: {
+				subject: res.subject,
+				body: res.message,
+				to: res.to,
+				from: res.from,
+				templateId: res.templateId
+			}
+		};
 	}
 }
 
