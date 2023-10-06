@@ -3,7 +3,7 @@ import frusterTestUtils, { FrusterTestUtilsConnection } from "@fruster/test-util
 import config from "../config";
 import { start } from "../fruster-mail-service";
 import { CREATE_TEMPLATE_PERMISSIONS, CREATE_TEMPLATE_SUBJECT } from "../lib/handlers/CreateTemplateHandler";
-import { GET_TEMPLATE_BY_ID_PERMISSIONS, GET_TEMPLATE_BY_ID_SUBJECT } from '../lib/handlers/GetTemplateByIdHandler';
+import { GET_TEMPLATE_BY_ID_PERMISSIONS, GET_TEMPLATE_BY_ID_HTTP_SUBJECT, GET_TEMPLATE_BY_ID_SUBJECT } from '../lib/handlers/GetTemplateByIdHandler';
 import { SERVICE_SUBJECT } from '../lib/handlers/SendMailHandler';
 import { UPDATE_TEMPLATE_PERMISSIONS, UPDATE_TEMPLATE_SUBJECT } from '../lib/handlers/UpdateTemplateHandler';
 import Template from "../lib/models/Template";
@@ -51,8 +51,9 @@ describe("Templates", () => {
 		expect(data.subject).toBe("This is subject");
 		expect(data.html).toBe("This is body");
 
+		// Test http endpoint
 		const {data: templateById } = await testBus.request<void, Template>({
-			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			subject: GET_TEMPLATE_BY_ID_HTTP_SUBJECT,
 			message: {
 				params: {
 					id: data.id
@@ -66,6 +67,20 @@ describe("Templates", () => {
 		expect(templateById.id).toBeDefined();
 		expect(templateById.subject).toBe("This is subject");
 		expect(templateById.html).toBe("This is body");
+
+		// Test bus endpoint
+		const {data: templateByIdBusEndpoint } = await testBus.request<void, Template>({
+			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			message: {
+				params: {
+					id: data.id
+				},
+			}
+		});
+
+		expect(templateByIdBusEndpoint.id).toBeDefined();
+		expect(templateByIdBusEndpoint.subject).toBe("This is subject");
+		expect(templateByIdBusEndpoint.html).toBe("This is body");
 
 		const {data: updatedTemplate } = await testBus.request<UpdateTemplateRequest, Template>({
 			subject: UPDATE_TEMPLATE_SUBJECT,
@@ -156,7 +171,7 @@ describe("Templates", () => {
 		});
 
 		const {status: statusWithoutOwner} = await testBus.request<any, Template>({
-			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			subject: GET_TEMPLATE_BY_ID_HTTP_SUBJECT,
 			throwErrors: false,
 			message: {
 				user: {
@@ -169,7 +184,7 @@ describe("Templates", () => {
 		});
 
 		const {status: statusWithInvalidOwner} = await testBus.request<any, Template>({
-			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			subject: GET_TEMPLATE_BY_ID_HTTP_SUBJECT,
 			throwErrors: false,
 			message: {
 				user: {
@@ -185,7 +200,7 @@ describe("Templates", () => {
 		});
 
 		const {status: statusWithOwner} = await testBus.request<any, Template>({
-			subject: GET_TEMPLATE_BY_ID_SUBJECT,
+			subject: GET_TEMPLATE_BY_ID_HTTP_SUBJECT,
 			throwErrors: false,
 			message: {
 				user: {
