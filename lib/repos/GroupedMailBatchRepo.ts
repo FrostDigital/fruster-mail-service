@@ -4,7 +4,7 @@ import constants from "../constants";
 import GroupedMailBatch from "../models/GroupedMailBatch";
 
 class GroupedMailBatchRepo {
-	private collection: Collection;
+	private collection: Collection<GroupedMailBatch>;
 
 	constructor(db: Db) {
 		this.collection = db.collection(constants.collections.GROUPED_MAIL_BATCHES);
@@ -25,14 +25,14 @@ class GroupedMailBatchRepo {
 	* Gets GroupedMailBatch entries by query
 	 */
 	async getByQuery(query: object): Promise<GroupedMailBatch[]> {
-		return await this.collection.find(query).project({ _id: 0 }).toArray();
+		return await this.collection.find(query, { projection: { _id: 0 } }).toArray();
 	}
 
 	/**
 	 * Get a GroupedMailBatch entry by query
 	 */
 	async getOneByQuery(query: object): Promise<GroupedMailBatch | null> {
-		return await this.collection.findOne(query, { fields: { _id: 0 } });
+		return await this.collection.findOne(query, { projection: { _id: 0 } });
 	}
 
 	/**

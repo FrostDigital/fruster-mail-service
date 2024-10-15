@@ -64,8 +64,8 @@ class IdRelayMailClient extends AbstractMailClient {
 				headers: { "Authorization": "Basic " + this.getAuthHash() },
 				retry: 0
 			});
-		} catch ({ message }) {
-			throw errors.internalServerError(message);
+		} catch (e: any) {
+			throw errors.internalServerError(e.message);
 		}
 	}
 

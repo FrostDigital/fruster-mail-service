@@ -93,13 +93,14 @@ class FlowMailerMailClient extends AbstractMailClient {
 
 	private async getAccessTokenByApi(): Promise<string> {
 		try {
-			const { access_token } = await got.post(this.loginUrl, {
+			const { body: { access_token } } = await got.post<{ access_token: string }>(this.loginUrl, {
 				form: {
 					client_id: config.flowMailer.clientId,
 					client_secret: config.flowMailer.clientSecret,
 					grant_type: "client_credentials"
-				}
-			}).json();
+				},
+				responseType: 'json'
+			});
 
 			return access_token;
 		} catch (e: any) {

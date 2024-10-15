@@ -4,7 +4,7 @@ import constants from "../constants";
 import { GroupedMail } from "../models/Mail";
 
 class GroupedMailRepo {
-	private collection: Collection;
+	private collection: Collection<GroupedMail>;
 
 	constructor(db: Db) {
 		this.collection = db.collection(constants.collections.GROUPED_MAILS);
