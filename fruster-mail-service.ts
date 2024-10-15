@@ -1,4 +1,4 @@
-import { connect, Db } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 import { v4 } from "uuid";
 import bus from "@fruster/bus";
 import log from "@fruster/log";
@@ -34,7 +34,8 @@ export const start = async (busAddress: string, mongoUrl: string, mailClient: Ab
 	let db: Db | undefined = undefined;
 
 	if (config.groupedMailsEnabled || config.templatesEnabled || config.mailClient === constants.mailClients.FLOW_MAILER) {
-		db = await connect(mongoUrl);
+		const client = new MongoClient(mongoUrl);
+		db = (await client.connect()).db();
 
 		if (!process.env.CI) await createIndexes(db);
 
